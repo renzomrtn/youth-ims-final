@@ -149,7 +149,16 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
       progress: 70,
       status: "In Progress",
       expenseStatus: "Pending",
-      committees: []
+      committees: [
+        {
+          name: "Program",
+          chairman: { name: "Lisa Martinez", initials: "LM", gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)" },
+          viceChairman: { name: "David Lee", initials: "DL", gradient: "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)" },
+          members: [
+            { name: "Chris Taylor", initials: "CT", gradient: "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)" },
+          ]
+        }
+      ]
     }
   ]);
 
@@ -313,6 +322,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
             <input
               type="text"
               placeholder="Search projects..."
+              aria-label="Search projects"
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400"
             />
           </div>
@@ -321,13 +331,14 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
           <div className="mb-6">
             <button
               onClick={() => toggleYear(2024)}
+              aria-label={`${expandedYears.includes(2024) ? 'Collapse' : 'Expand'} projects for 2024`}
+              aria-expanded={expandedYears.includes(2024)}
               className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
             >
               <h3 className="text-black dark:text-white">Projects for 2024</h3>
               <ChevronDown
-                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${
-                  expandedYears.includes(2024) ? "rotate-180" : ""
-                }`}
+                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${expandedYears.includes(2024) ? "rotate-180" : ""
+                  }`}
               />
             </button>
             {expandedYears.includes(2024) && (
@@ -366,14 +377,12 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                           <div className="text-gray-600 dark:text-gray-400 text-sm">Accomplished: {project.accomplished}</div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-sm border-2 flex items-center gap-1.5 w-fit ${
-                            project.status === "Completed" 
-                              ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-600 dark:border-green-400" 
-                              : "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-600 dark:border-orange-400"
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${
-                              project.status === "Completed" ? "bg-green-600 dark:bg-green-400" : "bg-orange-600 dark:bg-orange-400"
-                            }`} />
+                          <span className={`px-3 py-1 rounded-full text-sm border-2 flex items-center gap-1.5 w-fit ${project.status === "Completed"
+                            ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-600 dark:border-green-400"
+                            : "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-600 dark:border-orange-400"
+                            }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${project.status === "Completed" ? "bg-green-600 dark:bg-green-400" : "bg-orange-600 dark:bg-orange-400"
+                              }`} />
                             {project.status}
                           </span>
                         </td>
@@ -398,9 +407,8 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
             >
               <h3 className="text-black dark:text-white">Projects for 2023</h3>
               <ChevronDown
-                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${
-                  expandedYears.includes(2023) ? "rotate-180" : ""
-                }`}
+                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${expandedYears.includes(2023) ? "rotate-180" : ""
+                  }`}
               />
             </button>
             {expandedYears.includes(2023) && (
@@ -418,9 +426,8 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
             >
               <h3 className="text-black dark:text-white">Projects for 2022</h3>
               <ChevronDown
-                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${
-                  expandedYears.includes(2022) ? "rotate-180" : ""
-                }`}
+                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${expandedYears.includes(2022) ? "rotate-180" : ""
+                  }`}
               />
             </button>
             {expandedYears.includes(2022) && (
@@ -458,7 +465,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
               placeholder="Search projects..."
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400"
             />
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-lg transition-colors" onClick={() => setIsCreateProjectModalOpen(true)}>
+            <button className="flex items-center gap-2 px-4 py-2 bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-lg transition-colors" onClick={() => setIsCreateProjectModalOpen(true)} aria-label="Create new project">
               <Plus className="w-4 h-4" />
               New Project
             </button>
@@ -493,6 +500,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                       {project.committees.length > 0 && (
                         <button
                           onClick={() => toggleRow(project.id)}
+                          aria-label={`${expandedRows.includes(project.id) ? 'Collapse' : 'Expand'} committee details for ${project.title}`}
                           className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-transform"
                           style={{
                             transform: expandedRows.includes(project.id) ? "rotate(180deg)" : "rotate(0deg)"
@@ -522,7 +530,12 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                     <td className="px-6 py-4">
                       <div className="mb-2">
                         <div className="text-black dark:text-white mb-1">{project.progress}%</div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                        <div role="progressbar"
+                          aria-valuenow={project.progress}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={`Project progress: ${project.progress}%`}
+                          className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                           <div
                             className="h-2 rounded-full"
                             style={{
@@ -532,37 +545,34 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                           />
                         </div>
                       </div>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${
-                        project.status === "Completed" 
-                          ? "bg-[#d1fae5] border-[#6ee7b7] text-[#047857]" 
-                          : "bg-[#fffbeb] border-[#fe9a00] text-[#e17100]"
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full mr-2 ${
-                          project.status === "Completed" ? "bg-[#10b981]" : "bg-[#fe9a00]"
-                        }`} />
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${project.status === "Completed"
+                        ? "bg-[#d1fae5] border-[#6ee7b7] text-[#047857]"
+                        : "bg-[#fffbeb] border-[#fe9a00] text-[#e17100]"
+                        }`} role="status"
+                        aria-label={`Project status: ${project.status}`}>
+                        <span className={`w-2 h-2 rounded-full mr-2 ${project.status === "Completed" ? "bg-[#10b981]" : "bg-[#fe9a00]"
+                          }`} />
                         {project.status}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${
-                        project.expenseStatus === "Verified" 
-                          ? "bg-[#d1fae5] border-[#6ee7b7] text-[#047857]" 
-                          : project.expenseStatus === "Pending"
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${project.expenseStatus === "Verified"
+                        ? "bg-[#d1fae5] border-[#6ee7b7] text-[#047857]"
+                        : project.expenseStatus === "Pending"
                           ? "bg-gray-100 border-gray-300 text-gray-600"
                           : "bg-[#fff7f7] border-[#fe0000] text-[#e10000]"
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full mr-2 ${
-                          project.expenseStatus === "Verified" 
-                            ? "bg-[#10b981]" 
-                            : project.expenseStatus === "Pending"
+                        }`}>
+                        <span className={`w-2 h-2 rounded-full mr-2 ${project.expenseStatus === "Verified"
+                          ? "bg-[#10b981]"
+                          : project.expenseStatus === "Pending"
                             ? "bg-gray-400"
                             : "bg-[#fe0000]"
-                        }`} />
+                          }`} />
                         {project.expenseStatus}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">
+                      <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" aria-label={`Edit project: ${project.title}`}>
                         <Edit className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       </button>
                     </td>
@@ -582,12 +592,13 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                                 chairman: committee.chairman.name,
                                 viceChairman: committee.viceChairman.name,
                               })}
+                              aria-label={`Open kanban board for ${committee.name} committee of ${project.title}`}
                               className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-[#174499] dark:hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer text-left"
                             >
                               <h3 className="text-center text-[#364153] dark:text-gray-200 mb-4">
                                 Committee: {committee.name}
                               </h3>
-                              
+
                               {/* Chairman */}
                               <div className="flex items-center gap-2 mb-3">
                                 <div
@@ -649,15 +660,16 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
             disabled={currentPage === 1}
-          >
+            aria-label="Go to previous page">
             Previous
           </button>
-          <button className="px-4 py-2 bg-[#174499] text-white rounded">
+          <button className="px-4 py-2 bg-[#174499] text-white rounded" aria-label={`Current page, page ${currentPage}`} aria-current="page">
             {currentPage}
           </button>
           <button
             onClick={() => setCurrentPage(currentPage + 1)}
             className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            aria-label="Go to next page"
           >
             Next
           </button>
@@ -675,11 +687,12 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
             <button
               key={tab}
               onClick={() => handleTabChange(tab.toLowerCase().replace(/\s+/g, ""))}
-              className={`py-4 relative ${
-                activeTab === tab.toLowerCase().replace(/\s+/g, "")
-                  ? "text-[#174499] dark:text-blue-400"
-                  : "text-[#606060] dark:text-gray-400"
-              }`}
+              aria-label={`${tab} tab`}
+              aria-current={activeTab === tab.toLowerCase().replace(/\s+/g, "") ? "page" : undefined}
+              className={`py-4 relative ${activeTab === tab.toLowerCase().replace(/\s+/g, "")
+                ? "text-[#174499] dark:text-blue-400"
+                : "text-[#606060] dark:text-gray-400"
+                }`}
             >
               <span>{tab}</span>
               {activeTab === tab.toLowerCase().replace(/\s+/g, "") && (
@@ -701,11 +714,11 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
       <CreateProjectModal isOpen={isCreateProjectModalOpen} onClose={() => setIsCreateProjectModalOpen(false)} onCreate={handleFirstModalConfirm} />
       {/* Committee Memberships Modal */}
       {isCommitteeMembershipsModalOpen && (
-        <CommitteeMembershipsModal 
+        <CommitteeMembershipsModal
           darkMode={darkMode}
-          onClose={handleCommitteeMembershipsClose} 
-          onConfirm={handleCommitteeMembershipsConfirm} 
-          onPrevious={handleCommitteeMembershipsPrevious} 
+          onClose={handleCommitteeMembershipsClose}
+          onConfirm={handleCommitteeMembershipsConfirm}
+          onPrevious={handleCommitteeMembershipsPrevious}
         />
       )}
     </div>
