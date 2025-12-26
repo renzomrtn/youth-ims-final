@@ -528,7 +528,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                       <div className="text-gray-600 dark:text-gray-400">Accomplished: {project.accomplished}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="mb-2">
+                      <div className="mb-2 flex items-center gap-3">
                         <div className="text-black dark:text-white mb-1">{project.progress}%</div>
                         <div role="progressbar"
                           aria-valuenow={project.progress}
