@@ -10,9 +10,11 @@ import { LoginPage } from "./components/LoginPage";
 import { KanbanBoard } from "./components/KanbanBoard";
 import { ExpenseVerificationContent } from "./components/ExpenseVerificationContent";
 import { ArchivesContent } from "./components/ArchivesContent";
+import type { CategoryData } from "./components/ArchivesContent";
 import { ArchivesResolutionsContent } from "./components/ArchivesResolutionsContent";
 import { ArchivesOrdinancesContent } from "./components/ArchivesOrdinancesContent";
 import { ArchivesMinutesContent } from "./components/ArchivesMinutesContent";
+import { ArchivesGenericContent } from "./components/ArchivesGenericContent";
 import { PortalManagementContent } from "./components/PortalManagementContent";
 import { PortalVerifiedExpensesContent } from "./components/PortalVerifiedExpensesContent";
 import { PortalLineItemsContent } from "./components/PortalLineItemsContent";
@@ -24,9 +26,16 @@ function AppContent() {
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState("dashboard");
-  const [currentSubPage, setCurrentSubPage] = useState<string | undefined>(undefined);
-  const [viewMode, setViewMode] = useState<"federation" | "barangay">("federation");
-  
+  const [currentSubPage, setCurrentSubPage] = useState<
+    string | undefined
+  >(undefined);
+  const [viewMode, setViewMode] = useState<
+    "federation" | "barangay"
+  >("federation");
+
+  // Custom archive categories state
+  const [customArchiveCategories, setCustomArchiveCategories] = useState<CategoryData[]>([]);
+
   // Kanban state
   const [kanbanData, setKanbanData] = useState<{
     projectTitle: string;
@@ -79,7 +88,7 @@ function AppContent() {
             darkMode={darkMode}
             sidebarOpen={sidebarOpen}
           />
-          <main 
+          <main
             className="flex-1 overflow-auto"
             role="main"
             aria-label="Main content"
@@ -96,7 +105,10 @@ function AppContent() {
             ) : (
               <>
                 {currentPage === "dashboard" && (
-                  <DashboardContent darkMode={darkMode} viewMode={viewMode} />
+                  <DashboardContent
+                    darkMode={darkMode}
+                    viewMode={viewMode}
+                  />
                 )}
                 {currentPage === "projects" && (
                   <ProjectsContent
@@ -107,73 +119,107 @@ function AppContent() {
                   />
                 )}
                 {currentPage === "budgetpreparation" && (
-                  <BudgetPreparationContent darkMode={darkMode} viewMode={viewMode} />
+                  <BudgetPreparationContent
+                    darkMode={darkMode}
+                    viewMode={viewMode}
+                  />
                 )}
                 {currentPage === "budgetflow" && (
-                  <BudgetFlowContent darkMode={darkMode} viewMode={viewMode} />
+                  <BudgetFlowContent
+                    darkMode={darkMode}
+                    viewMode={viewMode}
+                  />
                 )}
                 {currentPage === "expenseverification" && (
-                  <ExpenseVerificationContent 
-                    darkMode={darkMode} 
+                  <ExpenseVerificationContent
+                    darkMode={darkMode}
                     viewMode={viewMode}
                     onSubPageChange={setCurrentSubPage}
                   />
                 )}
-                {currentPage === "archives" && (
-                  <>
-                    {currentSubPage === "resolutions" ? (
-                      <ArchivesResolutionsContent 
-                        darkMode={darkMode} 
-                        viewMode={viewMode}
-                        onBack={() => setCurrentSubPage(undefined)}
-                        onSubPageChange={setCurrentSubPage}
-                      />
-                    ) : currentSubPage === "ordinances" ? (
-                      <ArchivesOrdinancesContent 
-                        darkMode={darkMode} 
-                        viewMode={viewMode}
-                        onBack={() => setCurrentSubPage(undefined)}
-                        onSubPageChange={setCurrentSubPage}
-                      />
-                    ) : currentSubPage === "minutes" ? (
-                      <ArchivesMinutesContent 
-                        darkMode={darkMode} 
-                        viewMode={viewMode}
-                        onBack={() => setCurrentSubPage(undefined)}
-                        onSubPageChange={setCurrentSubPage}
-                      />
-                    ) : (
-                      <ArchivesContent 
-                        darkMode={darkMode} 
-                        viewMode={viewMode}
-                        onSubPageChange={setCurrentSubPage}
-                      />
-                    )}
-                  </>
-                )}
+                {currentPage === "archives" && (() => {
+                  // Find if current subpage is a custom archive
+                  const customArchive = customArchiveCategories.find(cat => cat.id === currentSubPage);
+                  
+                  return (
+                    <>
+                      {currentSubPage === "resolutions" ? (
+                        <ArchivesResolutionsContent
+                          darkMode={darkMode}
+                          viewMode={viewMode}
+                          onBack={() =>
+                            setCurrentSubPage(undefined)
+                          }
+                          onSubPageChange={setCurrentSubPage}
+                        />
+                      ) : currentSubPage === "ordinances" ? (
+                        <ArchivesOrdinancesContent
+                          darkMode={darkMode}
+                          viewMode={viewMode}
+                          onBack={() =>
+                            setCurrentSubPage(undefined)
+                          }
+                          onSubPageChange={setCurrentSubPage}
+                        />
+                      ) : currentSubPage === "minutes" ? (
+                        <ArchivesMinutesContent
+                          darkMode={darkMode}
+                          viewMode={viewMode}
+                          onBack={() =>
+                            setCurrentSubPage(undefined)
+                          }
+                          onSubPageChange={setCurrentSubPage}
+                        />
+                      ) : customArchive ? (
+                        <ArchivesGenericContent
+                          darkMode={darkMode}
+                          viewMode={viewMode}
+                          onBack={() =>
+                            setCurrentSubPage(undefined)
+                          }
+                          typeName={customArchive.name}
+                        />
+                      ) : (
+                        <ArchivesContent
+                          darkMode={darkMode}
+                          viewMode={viewMode}
+                          onSubPageChange={setCurrentSubPage}
+                          customCategories={customArchiveCategories}
+                          onCustomCategoriesChange={setCustomArchiveCategories}
+                        />
+                      )}
+                    </>
+                  );
+                })()}
                 {currentPage === "portalmanagement" && (
                   <>
                     {currentSubPage === "verifiedexpenses" ? (
-                      <PortalVerifiedExpensesContent 
-                        darkMode={darkMode} 
+                      <PortalVerifiedExpensesContent
+                        darkMode={darkMode}
                         viewMode={viewMode}
-                        onBack={() => setCurrentSubPage(undefined)}
+                        onBack={() =>
+                          setCurrentSubPage(undefined)
+                        }
                       />
                     ) : currentSubPage === "lineitems" ? (
-                      <PortalLineItemsContent 
-                        darkMode={darkMode} 
+                      <PortalLineItemsContent
+                        darkMode={darkMode}
                         viewMode={viewMode}
-                        onBack={() => setCurrentSubPage(undefined)}
+                        onBack={() =>
+                          setCurrentSubPage(undefined)
+                        }
                       />
                     ) : currentSubPage === "portalarchives" ? (
-                      <PortalArchivesContent 
-                        darkMode={darkMode} 
+                      <PortalArchivesContent
+                        darkMode={darkMode}
                         viewMode={viewMode}
-                        onBack={() => setCurrentSubPage(undefined)}
+                        onBack={() =>
+                          setCurrentSubPage(undefined)
+                        }
                       />
                     ) : (
-                      <PortalManagementContent 
-                        darkMode={darkMode} 
+                      <PortalManagementContent
+                        darkMode={darkMode}
                         viewMode={viewMode}
                         onSubPageChange={setCurrentSubPage}
                       />
@@ -181,7 +227,10 @@ function AppContent() {
                   </>
                 )}
                 {currentPage === "personnel" && (
-                  <PersonnelContent darkMode={darkMode} viewMode={viewMode} />
+                  <PersonnelContent
+                    darkMode={darkMode}
+                    viewMode={viewMode}
+                  />
                 )}
               </>
             )}

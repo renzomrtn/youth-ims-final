@@ -33,7 +33,6 @@ export function ArchivesMinutesContent({
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const years = ["2025", "2024", "2023", "2022"];
-  const currentYear = new Date().getFullYear().toString();
 
   // Sample minutes data
   const minutes: Minute[] = [
@@ -161,8 +160,8 @@ export function ArchivesMinutesContent({
       </div>
 
       {/* Content */}
-      <div className="flex-1">
-        <div className="bg-white dark:bg-gray-800 min-h-full">
+      <div className="flex-1 bg-[#f3f3f3] dark:bg-gray-900 p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm min-h-full">
           {/* Header */}
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-4 mb-6">
@@ -187,7 +186,7 @@ export function ArchivesMinutesContent({
               </div>
 
               {/* Add Document Button - Only visible for current year */}
-              {selectedYear === currentYear && (
+              {selectedYear === "2025" && (
                 <button
                   className="flex items-center gap-2 px-5 py-2.5 bg-[#3b5998] hover:bg-[#2d4373] text-white rounded-lg transition-colors"
                   onClick={() => setIsUploadModalOpen(true)}

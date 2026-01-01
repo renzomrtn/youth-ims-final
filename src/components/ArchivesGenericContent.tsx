@@ -1,16 +1,15 @@
 import { useState } from "react";
 import { Search, Plus, ChevronLeft, Eye, Edit, FileText } from "lucide-react";
-import svgPaths from "../imports/svg-hx3j332lyi";
 import { UploadDocumentModal } from "./UploadDocumentModal";
 
-interface ArchivesResolutionsContentProps {
+interface ArchivesGenericContentProps {
   darkMode: boolean;
   viewMode: "federation" | "barangay";
   onBack: () => void;
-  onSubPageChange?: (subPage: string | undefined) => void;
+  typeName: string;
 }
 
-interface Resolution {
+interface Document {
   number: number;
   recordId: string;
   title: string;
@@ -21,12 +20,12 @@ interface Resolution {
   fileSize: string;
 }
 
-export function ArchivesResolutionsContent({ 
+export function ArchivesGenericContent({ 
   darkMode, 
   viewMode, 
   onBack,
-  onSubPageChange 
-}: ArchivesResolutionsContentProps) {
+  typeName
+}: ArchivesGenericContentProps) {
   const [selectedYear, setSelectedYear] = useState("2025");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,94 +33,13 @@ export function ArchivesResolutionsContent({
 
   const years = ["2025", "2024", "2023", "2022"];
 
-  // Sample resolutions data
-  const resolutions: Resolution[] = [
-    {
-      number: 8,
-      recordId: "RID-12118PU21",
-      title: "Resolution on Educational Aid for Disaster Victims",
-      author: "John Dale Cruz",
-      uploadedDate: "September 09, 2024",
-      lastEditedBy: "Emely Rexi",
-      fileType: "PDF",
-      fileSize: "1.4 MB"
-    },
-    {
-      number: 7,
-      recordId: "RID-12711ASR21",
-      title: "Resolution opposing House Bill 10147d and Senate Bill 2707",
-      author: "John Dale Cruz",
-      uploadedDate: "December 25, 2024",
-      lastEditedBy: "Maria Santos",
-      fileType: "PDF",
-      fileSize: "1.5 MB"
-    },
-    {
-      number: 6,
-      recordId: "RID-150273B23",
-      title: "Resolution on Youth-Focused Drug Prevention",
-      author: "Pedro Reyes",
-      uploadedDate: "October 12, 2024",
-      lastEditedBy: "Nina Garcia",
-      fileType: "PDF",
-      fileSize: "0.9 MB"
-    },
-    {
-      number: 5,
-      recordId: "RID-1FT27JJG21",
-      title: "Resolution on Free HIV/AIDS Medication",
-      author: "Carlos Mendez",
-      uploadedDate: "September 18, 2024",
-      lastEditedBy: "Sarah Dale Cruz",
-      fileType: "PDF",
-      fileSize: "1.1 MB"
-    },
-    {
-      number: 4,
-      recordId: "RID-15N271B21",
-      title: "Resolution on Support for Youth Sports League",
-      author: "Robert Tan",
-      uploadedDate: "August 05, 2024",
-      lastEditedBy: "Sarah Lopez",
-      fileType: "PDF",
-      fileSize: "1.0 MB"
-    },
-    {
-      number: 3,
-      recordId: "RID-12716ER3",
-      title: "Resolution on Mental Health Programs for Youth",
-      author: "Jennifer Aquino",
-      uploadedDate: "December 30, 2024",
-      lastEditedBy: "Michael Demas",
-      fileType: "PDF",
-      fileSize: "1.3 MB"
-    },
-    {
-      number: 2,
-      recordId: "RID-1271JVSD21",
-      title: "Resolution on Financial Aid for Students",
-      author: "Diana Diwa",
-      uploadedDate: "September 12, 2024",
-      lastEditedBy: "Patricia Cruz",
-      fileType: "PDF",
-      fileSize: "0.8 MB"
-    },
-    {
-      number: 1,
-      recordId: "RID-121073B11",
-      title: "Resolution",
-      author: "Annalyn Reyes",
-      uploadedDate: "August 25, 2024",
-      lastEditedBy: "Rosa Martinez",
-      fileType: "PDF",
-      fileSize: "0.7 MB"
-    }
-  ];
+  // Sample documents data - in real app, this would be fetched based on type
+  const documents: Document[] = [];
 
-  const filteredResolutions = resolutions.filter(resolution =>
-    resolution.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    resolution.recordId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    resolution.author.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredDocuments = documents.filter(doc =>
+    doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    doc.recordId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    doc.author.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -166,12 +84,10 @@ export function ArchivesResolutionsContent({
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-4 mb-6">
               {/* Category Icon */}
-              <div className="w-12 h-12 rounded-[10px] flex items-center justify-center p-2.5"
-                style={{ background: "linear-gradient(135deg, rgb(43, 127, 255) 0%, rgb(21, 93, 252) 100%)" }}
-              >
+              <div className="w-12 h-12 rounded-[10px] flex items-center justify-center p-2.5 bg-[#3b7ffc]">
                 <FileText className="w-7 h-7 text-white" />
               </div>
-              <h2 className="text-xl text-black dark:text-white">Resolutions</h2>
+              <h2 className="text-xl text-black dark:text-white">{typeName}</h2>
             </div>
 
             {/* Search and Add Button */}
@@ -189,9 +105,9 @@ export function ArchivesResolutionsContent({
 
               {/* Add Document Button - Only visible for current year */}
               {selectedYear === "2025" && (
-                <button 
-                  onClick={() => setIsUploadModalOpen(true)}
+                <button
                   className="flex items-center gap-2 px-5 py-2.5 bg-[#3b5998] hover:bg-[#2d4373] text-white rounded-lg transition-colors"
+                  onClick={() => setIsUploadModalOpen(true)}
                 >
                   <Plus className="w-4 h-4" />
                   Add Document
@@ -226,39 +142,39 @@ export function ArchivesResolutionsContent({
                 </tr>
               </thead>
               <tbody>
-                {filteredResolutions.map((resolution) => (
+                {filteredDocuments.map((doc) => (
                   <tr
-                    key={resolution.recordId}
+                    key={doc.recordId}
                     className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
                   >
                     <td className="px-6 py-6">
-                      <p className="text-[#101828] dark:text-gray-200">{resolution.number}</p>
+                      <p className="text-[#101828] dark:text-gray-200">{doc.number}</p>
                     </td>
                     <td className="px-6 py-6">
-                      <p className="text-[#4a5565] dark:text-gray-400 text-sm">{resolution.recordId}</p>
+                      <p className="text-[#4a5565] dark:text-gray-400 text-sm">{doc.recordId}</p>
                     </td>
                     <td className="px-6 py-6">
                       <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-[#3b5998] dark:text-blue-400" />
-                        <p className="text-[#101828] dark:text-gray-200">{resolution.title}</p>
+                        <FileText className="w-4 h-4 text-[#3b7ffc] dark:text-blue-400" />
+                        <p className="text-[#101828] dark:text-gray-200">{doc.title}</p>
                       </div>
                     </td>
                     <td className="px-6 py-6">
                       <div className="flex flex-col gap-1">
                         <p className="text-sm text-[#4a5565] dark:text-gray-400">
-                          <span className="font-semibold">Author:</span> {resolution.author}
+                          <span className="font-semibold">Author:</span> {doc.author}
                         </p>
                         <p className="text-sm text-[#4a5565] dark:text-gray-400">
-                          <span className="font-semibold">Uploaded:</span> {resolution.uploadedDate}
+                          <span className="font-semibold">Uploaded:</span> {doc.uploadedDate}
                         </p>
                         <p className="text-sm text-[#4a5565] dark:text-gray-400">
-                          <span className="font-semibold">Last Edited by:</span> {resolution.lastEditedBy}
+                          <span className="font-semibold">Last Edited by:</span> {doc.lastEditedBy}
                         </p>
                       </div>
                     </td>
                     <td className="px-6 py-6">
                       <p className="text-sm text-[#4a5565] dark:text-gray-400">
-                        {resolution.fileType} {resolution.fileSize}
+                        {doc.fileType} {doc.fileSize}
                       </p>
                     </td>
                     <td className="px-6 py-6">
@@ -276,9 +192,9 @@ export function ArchivesResolutionsContent({
               </tbody>
             </table>
 
-            {filteredResolutions.length === 0 && (
+            {filteredDocuments.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500 dark:text-gray-400">No resolutions found matching your search.</p>
+                <p className="text-gray-500 dark:text-gray-400">No documents found.</p>
               </div>
             )}
           </div>
