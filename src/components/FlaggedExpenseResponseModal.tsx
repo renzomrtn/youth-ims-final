@@ -1,6 +1,6 @@
 import { X, FileImage } from "lucide-react";
 import { useState } from "react";
-import { type FlaggingData } from "./FlaggingModal";
+import { FlaggingData } from "./FlaggingModal";
 
 interface FlaggedExpenseResponseModalProps {
   isOpen: boolean;

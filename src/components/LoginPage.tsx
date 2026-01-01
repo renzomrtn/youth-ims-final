@@ -16,15 +16,24 @@ export function LoginPage({ darkMode }: LoginPageProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
     
-    const success = login(username, password);
-    
-    if (!success) {
-      setError("Invalid username or password");
+    try {
+      const success = await login(username, password);
+      
+      if (!success) {
+        setError("Invalid username or password");
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      setError("An error occurred during login. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -147,8 +156,9 @@ export function LoginPage({ darkMode }: LoginPageProps) {
               <button
                 type="submit"
                 className="bg-[#86b0ff] border border-white rounded-[16px] px-[142px] py-[16px] shadow-[0px_4px_6px_0px_rgba(0,0,0,0.1),0px_10px_15px_0px_rgba(0,0,0,0.1)] text-black text-center hover:bg-[#6fa0ff] transition-colors"
+                disabled={isLoading}
               >
-                Sign In
+                {isLoading ? "Loading..." : "Sign In"}
               </button>
             </form>
           </div>

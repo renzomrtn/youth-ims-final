@@ -1,5 +1,5 @@
 import svgPaths from "./svg-7vtnwhnxri";
-import imgAnalytics from "figma:asset/9066d0c3e92d7f448f496f9762ca0285553bd417.png";
+import imgAnalytics from "../assets/9066d0c3e92d7f448f496f9762ca0285553bd417.png";
 
 function Icon() {
   return (

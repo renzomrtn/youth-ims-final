@@ -1,5 +1,5 @@
 import svgPaths from "./svg-37sznsw223";
-import imgTearOffCalendar from "figma:asset/d68bca76a437a69a5c784c863d9083cda1fd426f.png";
+import imgTearOffCalendar from "../assets/d68bca76a437a69a5c784c863d9083cda1fd426f.png";
 
 function CloseCircle() {
   return (

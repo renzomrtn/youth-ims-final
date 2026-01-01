@@ -1,6 +1,6 @@
 import svgPaths from "./svg-limmu46cwv";
-import imgYouthImsLogo11 from "figma:asset/8060f7b70ee64910a3764658a3aaf192cdf1a596.png";
-import imgAnalytics from "figma:asset/9066d0c3e92d7f448f496f9762ca0285553bd417.png";
+import imgYouthImsLogo11 from "../assets/8060f7b70ee64910a3764658a3aaf192cdf1a596.png";
+import imgAnalytics from "../assets/9066d0c3e92d7f448f496f9762ca0285553bd417.png";
 
 function Frame2() {
   return (

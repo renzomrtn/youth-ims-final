@@ -1,7 +1,11 @@
 import { StatCard } from "./StatCard";
 import { RecentActivity } from "./RecentActivity";
 import { TrendingUp, DollarSign, FileText, TrendingDown } from "lucide-react";
-// import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { useState, useEffect } from "react";
+import { projectsAPI, budgetAPI, archivesAPI, expensesAPI } from "../utils/database";
+import { seedDatabase } from "../utils/seedData";
+import { DatabaseInit } from "./DatabaseInit";
 
 interface DashboardContentProps {
   darkMode: boolean;
@@ -137,6 +141,7 @@ export function DashboardContent({ darkMode, viewMode }: DashboardContentProps) 
 
   return (
     <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900">
+      <DatabaseInit />
       <div className="p-8 space-y-10">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7">
@@ -158,11 +163,11 @@ export function DashboardContent({ darkMode, viewMode }: DashboardContentProps) 
             <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-6 shrink-0">
               <h2 className="text-[#101828] dark:text-white text-xl">Budget Expenditures Overview</h2>
             </div>
-            
-            {/* Pie Chart Content 
+
+            {/* Pie Chart Content */}
             <div className="p-6 flex-1 flex items-center">
               <div className="flex items-center gap-8 w-full">
-                {/* Pie Chart 
+                {/* Pie Chart */}
                 <div className="flex-1">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
@@ -183,7 +188,7 @@ export function DashboardContent({ darkMode, viewMode }: DashboardContentProps) 
                   </ResponsiveContainer>
                 </div>
 
-                {/* Legend 
+                {/* Legend */}
                 <div className="flex flex-col gap-3 flex-1">
                   {budgetExpendituresData.map((item, index) => (
                     <div key={index} className="flex items-center gap-2.5">
@@ -199,7 +204,6 @@ export function DashboardContent({ darkMode, viewMode }: DashboardContentProps) 
                 </div>
               </div>
             </div>
-            */}
           </div>
         </div>
       </div>

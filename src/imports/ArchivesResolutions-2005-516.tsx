@@ -1,5 +1,5 @@
-import svgPaths from "./svg-976tu6e3e0";
-import imgLogo from "../assets/45d62b4154f72c9e869aa78a75208c48cc1accd0.png";
+import svgPaths from "./svg-ub6ovlr272";
+import imgYouthImsLogo11 from "../assets/8060f7b70ee64910a3764658a3aaf192cdf1a596.png";
 import imgAnalytics from "../assets/9066d0c3e92d7f448f496f9762ca0285553bd417.png";
 
 function Frame2() {
@@ -22,8 +22,8 @@ function Frame1() {
 function Branding() {
   return (
     <div className="content-stretch flex gap-[6px] items-center relative shrink-0" data-name="branding">
-      <div className="relative shrink-0 size-[54px]" data-name="Logo">
-        <img alt="" className="absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none size-full" src={imgLogo} />
+      <div className="relative shrink-0 size-[54px]" data-name="youth ims logo (1) 1">
+        <img alt="" className="absolute inset-0 max-w-none object-50%-50% object-cover pointer-events-none size-full" src={imgYouthImsLogo11} />
       </div>
       <div className="bg-[#040404] h-[54px] rounded-[5px] shrink-0 w-[3px]" />
       <Frame1 />
@@ -66,7 +66,7 @@ function Icon() {
     <div className="h-[20px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[12.56%_12.56%_12.5%_12.49%]" data-name="Vector">
         <div className="absolute inset-[-5.56%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 17 17">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 16.6564 16.6564">
             <path d={svgPaths.p11067680} id="Vector" stroke="var(--stroke-0, #364153)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
           </svg>
         </div>
@@ -98,7 +98,7 @@ function AccountCircle() {
 function ChevronDown() {
   return (
     <div className="h-[23.42px] mr-[-24px] relative shrink-0 w-[24px]" data-name="chevron-down (1) 1">
-      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 24">
+      <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 24 23.42">
         <g id="chevron-down (1) 1">
           <path d={svgPaths.p1e8d6080} fill="var(--fill-0, black)" id="Vector" />
         </g>
@@ -215,7 +215,7 @@ function M1() {
   return (
     <div className="content-stretch flex gap-[9px] items-center justify-center relative shrink-0" data-name="m2">
       <Icon3 />
-      <p className="font-['Source_Sans_3:Regular',sans-serif] font-normal leading-[normal] relative shrink-0 text-[#606060] text-[16px] text-nowrap">Budget</p>
+      <p className="font-['Source_Sans_3:Regular',sans-serif] font-normal leading-[normal] relative shrink-0 text-[#606060] text-[16px] text-nowrap">Budget Preparation</p>
     </div>
   );
 }
@@ -460,21 +460,21 @@ function Icon8() {
       <div className="bg-clip-padding border-0 border-[transparent] border-solid overflow-clip relative rounded-[inherit] size-full">
         <div className="absolute inset-[8.33%_16.67%]" data-name="Vector">
           <div className="absolute inset-[-5%_-6.25%]">
-            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 19">
+            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 18.3333">
               <path d={svgPaths.p2b8e5100} id="Vector" stroke="var(--stroke-0, white)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
             </svg>
           </div>
         </div>
         <div className="absolute inset-[8.33%_16.67%_66.67%_58.33%]" data-name="Vector">
           <div className="absolute inset-[-16.67%]">
-            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 7">
+            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6.66667 6.66667">
               <path d={svgPaths.p3b6dc480} id="Vector" stroke="var(--stroke-0, white)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
             </svg>
           </div>
         </div>
         <div className="absolute inset-[54.17%_37.5%_29.17%_37.5%]" data-name="Vector">
           <div className="absolute inset-[-25%_-16.67%]">
-            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 7 5">
+            <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6.66667 5">
               <path d={svgPaths.p184c5900} id="Vector" stroke="var(--stroke-0, white)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.66667" />
             </svg>
           </div>
@@ -821,14 +821,14 @@ function Icon11() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[20.84%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-7.14%_-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 11">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6673 10.6658">
             <path d={svgPaths.pb85f580} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
       </div>
       <div className="absolute inset-[37.5%]" data-name="Vector">
         <div className="absolute inset-[-16.67%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6 6">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.33333 5.33333">
             <path d={svgPaths.p36446d40} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -852,7 +852,7 @@ function Icon12() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6665 14.6664">
             <path d={svgPaths.p4290a20} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -1075,14 +1075,14 @@ function Icon14() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[20.84%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-7.14%_-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 11">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6673 10.6658">
             <path d={svgPaths.pb85f580} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
       </div>
       <div className="absolute inset-[37.5%]" data-name="Vector">
         <div className="absolute inset-[-16.67%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6 6">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.33333 5.33333">
             <path d={svgPaths.p36446d40} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -1106,7 +1106,7 @@ function Icon15() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6665 14.6664">
             <path d={svgPaths.p4290a20} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -1329,14 +1329,14 @@ function Icon17() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[20.84%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-7.14%_-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 11">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6673 10.6658">
             <path d={svgPaths.pb85f580} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
       </div>
       <div className="absolute inset-[37.5%]" data-name="Vector">
         <div className="absolute inset-[-16.67%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6 6">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.33333 5.33333">
             <path d={svgPaths.p36446d40} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -1360,7 +1360,7 @@ function Icon18() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6665 14.6664">
             <path d={svgPaths.p4290a20} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -1583,14 +1583,14 @@ function Icon20() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[20.84%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-7.14%_-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 11">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6673 10.6658">
             <path d={svgPaths.pb85f580} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
       </div>
       <div className="absolute inset-[37.5%]" data-name="Vector">
         <div className="absolute inset-[-16.67%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6 6">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.33333 5.33333">
             <path d={svgPaths.p36446d40} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -1614,7 +1614,7 @@ function Icon21() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6665 14.6664">
             <path d={svgPaths.p4290a20} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -1837,14 +1837,14 @@ function Icon23() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[20.84%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-7.14%_-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 11">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6673 10.6658">
             <path d={svgPaths.pb85f580} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
       </div>
       <div className="absolute inset-[37.5%]" data-name="Vector">
         <div className="absolute inset-[-16.67%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6 6">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.33333 5.33333">
             <path d={svgPaths.p36446d40} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -1868,7 +1868,7 @@ function Icon24() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6665 14.6664">
             <path d={svgPaths.p4290a20} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -2091,14 +2091,14 @@ function Icon26() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[20.84%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-7.14%_-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 11">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6673 10.6658">
             <path d={svgPaths.pb85f580} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
       </div>
       <div className="absolute inset-[37.5%]" data-name="Vector">
         <div className="absolute inset-[-16.67%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6 6">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.33333 5.33333">
             <path d={svgPaths.p36446d40} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -2122,7 +2122,7 @@ function Icon27() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6665 14.6664">
             <path d={svgPaths.p4290a20} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -2345,14 +2345,14 @@ function Icon29() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[20.84%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-7.14%_-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 11">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6673 10.6658">
             <path d={svgPaths.pb85f580} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
       </div>
       <div className="absolute inset-[37.5%]" data-name="Vector">
         <div className="absolute inset-[-16.67%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6 6">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.33333 5.33333">
             <path d={svgPaths.p36446d40} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -2376,7 +2376,7 @@ function Icon30() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6665 14.6664">
             <path d={svgPaths.p4290a20} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -2599,14 +2599,14 @@ function Icon32() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[20.84%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-7.14%_-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 11">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6673 10.6658">
             <path d={svgPaths.pb85f580} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
       </div>
       <div className="absolute inset-[37.5%]" data-name="Vector">
         <div className="absolute inset-[-16.67%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 6 6">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 5.33333 5.33333">
             <path d={svgPaths.p36446d40} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>
@@ -2630,7 +2630,7 @@ function Icon33() {
     <div className="h-[16px] overflow-clip relative shrink-0 w-full" data-name="Icon">
       <div className="absolute inset-[8.33%_8.33%_8.34%_8.33%]" data-name="Vector">
         <div className="absolute inset-[-5%]">
-          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 15 15">
+          <svg className="block size-full" fill="none" preserveAspectRatio="none" viewBox="0 0 14.6665 14.6664">
             <path d={svgPaths.p4290a20} id="Vector" stroke="var(--stroke-0, #4A5565)" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.33333" />
           </svg>
         </div>

@@ -1,8 +1,8 @@
 import { ArrowLeft, FileImage } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useState } from "react";
-import { FlaggingModal, type FlaggingData } from "./FlaggingModal";
-import { FlaggedExpenseResponseModal, type CorrectionData } from "./FlaggedExpenseResponseModal";
+import { FlaggingModal, FlaggingData } from "./FlaggingModal";
+import { FlaggedExpenseResponseModal, CorrectionData } from "./FlaggedExpenseResponseModal";
 
 interface ExpenseItem {
   id: string;

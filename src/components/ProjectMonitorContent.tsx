@@ -21,8 +21,7 @@ interface Project {
   status: "Completed" | "In Progress" | "Pending";
 }
 
-// darkmode and viewmode props are currently unused but may be used in the future- removed for the meantime
-export function ProjectMonitorContent({  }: ProjectMonitorContentProps) {
+export function ProjectMonitorContent({ darkMode, viewMode }: ProjectMonitorContentProps) {
   const [selectedYear, setSelectedYear] = useState("2025");
   const [selectedBarangay, setSelectedBarangay] = useState("Cabaug");
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,7 +30,7 @@ export function ProjectMonitorContent({  }: ProjectMonitorContentProps) {
 
   const years = ["2025", "2024", "2023", "2022"];
   const barangays = [
-    "Calauag",
+    "Cabaug",
     "San Isidro",
     "Poblacion",
     "Bagong Silang",

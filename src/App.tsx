@@ -20,6 +20,7 @@ import { PortalVerifiedExpensesContent } from "./components/PortalVerifiedExpens
 import { PortalLineItemsContent } from "./components/PortalLineItemsContent";
 import { PortalArchivesContent } from "./components/PortalArchivesContent";
 import { PersonnelContent } from "./components/PersonnelContent";
+import { seedDatabase } from "./utils/seedData";
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
@@ -32,6 +33,7 @@ function AppContent() {
   const [viewMode, setViewMode] = useState<
     "federation" | "barangay"
   >("federation");
+  const [isSeeding, setIsSeeding] = useState(false);
 
   // Custom archive categories state
   const [customArchiveCategories, setCustomArchiveCategories] = useState<CategoryData[]>([]);
@@ -60,6 +62,18 @@ function AppContent() {
   const handleCloseKanban = () => {
     setKanbanData(null);
     setCurrentSubPage(undefined);
+  };
+
+  // Seed database on first load (one-time setup)
+  const handleSeedDatabase = async () => {
+    setIsSeeding(true);
+    const result = await seedDatabase();
+    setIsSeeding(false);
+    if (result.success) {
+      alert('Database seeded successfully! Please refresh the page to see the data.');
+    } else {
+      alert(`Error seeding database: ${result.error}`);
+    }
   };
 
   if (!isAuthenticated) {

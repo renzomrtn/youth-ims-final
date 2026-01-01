@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Search, Plus, Info, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { ExpenseVerificationModal, type ExpenseVerificationData } from "./ExpenseVerificationModal";
+import { ExpenseVerificationModal, ExpenseVerificationData } from "./ExpenseVerificationModal";
 import { ExpenseVerificationDetailView } from "./ExpenseVerificationDetailView";
-import { type FlaggingData } from "./FlaggingModal";
+import { FlaggingData } from "./FlaggingModal";
 
 interface ExpenseVerificationContentProps {
   darkMode: boolean;

@@ -1,7 +1,7 @@
 import svgPaths from "./svg-77emg1ig3n";
-import imgLogo from "figma:asset/45d62b4154f72c9e869aa78a75208c48cc1accd0.png";
-import imgAnalytics from "figma:asset/9066d0c3e92d7f448f496f9762ca0285553bd417.png";
-import imgSettings from "figma:asset/eae5ff2af6ada8ad757597d1df5d7dd1f937b3dc.png";
+import imgLogo from "../assets/45d62b4154f72c9e869aa78a75208c48cc1accd0.png";
+import imgAnalytics from "../assets/9066d0c3e92d7f448f496f9762ca0285553bd417.png";
+import imgSettings from "../assets/eae5ff2af6ada8ad757597d1df5d7dd1f937b3dc.png";
 
 function Frame2() {
   return (

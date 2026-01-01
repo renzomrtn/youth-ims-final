@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown, Search } from "lucide-react";
-// import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 interface SKMonitorContentProps {
   darkMode: boolean;
@@ -181,7 +181,7 @@ export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
             <h3 className="text-xl text-black dark:text-white">
               Expenditure per<br />Areas of Participation
             </h3>
-
+            
             <div className="flex flex-col gap-3">
               {/* Year Dropdown */}
               <div className="relative">
@@ -206,7 +206,7 @@ export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
                   {selectedBarangay === "All" ? "All Barangays" : selectedBarangay}
                 </button>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-
+                
                 {barangaySearchOpen && (
                   <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg shadow-lg z-10">
                     {/* Search Input */}
@@ -223,7 +223,7 @@ export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
                         />
                       </div>
                     </div>
-
+                    
                     {/* Options */}
                     <div className="max-h-48 overflow-y-auto">
                       {filteredBarangays.length > 0 ? (
@@ -235,10 +235,11 @@ export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
                               setBarangaySearchOpen(false);
                               setBarangaySearchQuery("");
                             }}
-                            className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${selectedBarangay === barangay
-                              ? "bg-blue-50 dark:bg-gray-700 text-[#174499] dark:text-blue-400"
-                              : "text-gray-700 dark:text-gray-200"
-                              }`}
+                            className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                              selectedBarangay === barangay
+                                ? "bg-blue-50 dark:bg-gray-700 text-[#174499] dark:text-blue-400"
+                                : "text-gray-700 dark:text-gray-200"
+                            }`}
                           >
                             {barangay === "All" ? "All Barangays" : barangay}
                           </button>
@@ -272,7 +273,7 @@ export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
               ))}
             </div>
 
-            {/* Pie Chart - Now on right *
+            {/* Pie Chart - Now on right */}
             <div className="flex-1 flex items-center justify-center">
               <ResponsiveContainer width="100%" height={400}>
                 <PieChart>
@@ -294,7 +295,6 @@ export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            */}
           </div>
         </div>
 
@@ -353,5 +353,4 @@ export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
       </div>
     </div>
   );
-
 }
