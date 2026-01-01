@@ -137,7 +137,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     },
     {
       id: 3,
-      proponent: "Max Ellis",
+      proponent: "Max Fills",
       title: "Community Sports Festival",
       lineItemId: "LI-L-2024/912-7M4P",
       lineItemArea: "Sports & Recreation",
@@ -333,7 +333,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
               onClick={() => toggleYear(2024)}
               aria-label={`${expandedYears.includes(2024) ? 'Collapse' : 'Expand'} projects for 2024`}
               aria-expanded={expandedYears.includes(2024)}
-              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-2 hover:bg-blue-100 dark:hover:bg-gray-600 transition-colors"
+              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
             >
               <h3 className="text-black dark:text-white">Projects for 2024</h3>
               <ChevronDown
@@ -403,7 +403,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
           <div className="mb-6">
             <button
               onClick={() => toggleYear(2023)}
-              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-2 hover:bg-blue-100 dark:hover:bg-gray-600 transition-colors"
+              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
             >
               <h3 className="text-black dark:text-white">Projects for 2023</h3>
               <ChevronDown
@@ -422,7 +422,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
           <div className="mb-6">
             <button
               onClick={() => toggleYear(2022)}
-              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-2 hover:bg-blue-100 dark:hover:bg-gray-600 transition-colors"
+              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
             >
               <h3 className="text-black dark:text-white">Projects for 2022</h3>
               <ChevronDown
@@ -458,7 +458,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
       <>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-black dark:text-white">Projects for 2025</h2>
+          <h2 className="text-black dark:text-white">SKF Projects</h2>
           <div className="flex items-center gap-4">
             <input
               type="text"
@@ -494,7 +494,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                   {/* Main Row */}
                   <tr
                     key={project.id}
-                    className="border-b border-gray-200 dark:border-gray-700 hover:bg-blue-100 dark:hover:bg-gray-700/50"
+                    className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                   >
                     <td className="px-6 py-4">
                       {project.committees.length > 0 && (
@@ -527,7 +527,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                       <div className="text-black dark:text-white">Due Date: {project.dueDate}</div>
                       <div className="text-gray-600 dark:text-gray-400">Accomplished: {project.accomplished}</div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 flex-col justify-center items-middle">
                       <div className="mb-2 flex items-center gap-3">
                         <div className="text-black dark:text-white mb-1">{project.progress}%</div>
                         <div role="progressbar"

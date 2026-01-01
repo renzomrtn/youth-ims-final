@@ -70,6 +70,10 @@ export function CertificateGenerator({
 
   const certificateRef = useRef<HTMLDivElement>(null);
 
+  // Get the line item ID for the selected project
+  const selectedProjectData = projects.find(p => p.id === selectedProject);
+  const lineItemId = selectedProjectData?.lineItemId || '';
+
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -119,10 +123,13 @@ export function CertificateGenerator({
   const handleMouseDownOnName = (e: React.MouseEvent) => {
     if (isResizing) return;
     setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - namePosition.x,
-      y: e.clientY - namePosition.y
-    });
+    if (certificateRef.current) {
+      const rect = certificateRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left - namePosition.x,
+        y: e.clientY - rect.top - namePosition.y
+      });
+    }
   };
 
   const handleMouseDownOnResize = (e: React.MouseEvent) => {
@@ -197,41 +204,87 @@ export function CertificateGenerator({
 
       {/* Project and Upload Section */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex gap-11 items-center">
-          {/* Project Selection */}
-          <div className="flex flex-col gap-1">
-            <label className="text-black dark:text-white">Project</label>
-            <label className="text-gray-600 dark:text-gray-400 text-sm">Line Item ID:</label>
-          </div>
+        <div className="flex gap-6 items-start">
+          {/* Left Column - Project Selection */}
+          <div className="flex flex-col gap-3 w-[220px]">
+            <div>
+              <label className="text-black dark:text-white block mb-1">Project</label>
+              <select
+                value={selectedProject || ""}
+                onChange={(e) => onProjectChange(e.target.value ? Number(e.target.value) : null)}
+                className="w-full h-[38px] px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white"
+              >
+                <option value="">Select a project</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="text-gray-600 dark:text-gray-400 text-sm block mb-1">Line Item ID:</label>
+              <div className="w-full h-[38px] px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center">
+                <span className="text-black dark:text-white">{lineItemId || '-'}</span>
+              </div>
+            </div>
 
-          <div className="flex flex-col gap-1">
-            <select
-              value={selectedProject || ""}
-              onChange={(e) => onProjectChange(e.target.value ? Number(e.target.value) : null)}
-              className="w-[195px] h-[38px] px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white"
+            <button
+              disabled={!showPreview}
+              className={`w-full px-4 py-2 rounded-lg mt-2 ${
+                showPreview
+                  ? "bg-[#3b5998] hover:bg-[#2d4373] text-white"
+                  : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-600 cursor-not-allowed"
+              }`}
             >
-              <option value="">Select a project</option>
-              {projects.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.title}
-                </option>
-              ))}
-            </select>
-            <div className="w-[195px] h-[38px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700" />
+              Generate
+            </button>
+
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={handlePrevious}
+                disabled={!showPreview || currentNameIndex === 0}
+                className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg border ${
+                  showPreview && currentNameIndex > 0
+                    ? "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                }`}
+              >
+                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                  <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="text-sm">Previous</span>
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={!showPreview || currentNameIndex >= parsedNames.length - 1}
+                className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg border ${
+                  showPreview && currentNameIndex < parsedNames.length - 1
+                    ? "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+                    : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                }`}
+              >
+                <span className="text-sm">Next</span>
+                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          {/* Upload Sections */}
+          {/* Middle Column - Upload Sections */}
           <div className="flex gap-5">
             {/* CSV Upload */}
-            <div className="w-[339px] h-full bg-gray-50 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center">
-              <svg className="w-5 h-5 text-gray-400 mb-3" viewBox="0 0 20 20" fill="none">
+            <div className="w-[240px] h-[160px] bg-gray-50 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center">
+              <svg className="w-5 h-5 text-gray-400 mb-2" viewBox="0 0 20 20" fill="none">
                 <path d="M10 2.5V12.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M14.1667 6.66667L10 2.5L5.83333 6.66667" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <p className="text-black dark:text-white mb-1 text-center">Click to upload CSV</p>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-3 text-center">
-                Columns: First Name, Last Name, Middle Name
+              <p className="text-black dark:text-white mb-1 text-center text-sm">Click to upload CSV</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs mb-2 text-center">
+                First Name, Last Name, Middle Name
               </p>
               <input
                 type="file"
@@ -243,25 +296,25 @@ export function CertificateGenerator({
               />
               <label
                 htmlFor="csv-upload"
-                className={`text-sm px-4 py-2 rounded-lg cursor-pointer ${
+                className={`text-xs px-3 py-1.5 rounded-lg cursor-pointer ${
                   selectedProject
                     ? "bg-white dark:bg-gray-600 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-500"
                     : "bg-gray-300 dark:bg-gray-800 text-gray-500 dark:text-gray-600 cursor-not-allowed"
                 }`}
               >
-                {csvFile ? csvFile.name : "Choose File"}
+                {csvFile ? csvFile.name.substring(0, 20) + (csvFile.name.length > 20 ? '...' : '') : "Choose File"}
               </label>
             </div>
 
             {/* Template Upload */}
-            <div className="w-[339px] h-full bg-gray-50 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 flex flex-col items-center justify-center">
-              <svg className="w-5 h-5 text-gray-400 mb-3" viewBox="0 0 20 20" fill="none">
+            <div className="w-[240px] h-[160px] bg-gray-50 dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 flex flex-col items-center justify-center">
+              <svg className="w-5 h-5 text-gray-400 mb-2" viewBox="0 0 20 20" fill="none">
                 <path d="M10 2.5V12.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M14.1667 6.66667L10 2.5L5.83333 6.66667" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 <path d="M17.5 12.5V15.8333C17.5 16.2754 17.3244 16.6993 17.0118 17.0118C16.6993 17.3244 16.2754 17.5 15.8333 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V12.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <p className="text-black dark:text-white mb-1 text-center">Click to upload template</p>
-              <p className="text-gray-500 dark:text-gray-400 text-sm mb-3 text-center">PNG, JPG (max 10MB)</p>
+              <p className="text-black dark:text-white mb-1 text-center text-sm">Click to upload template</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs mb-2 text-center">PNG, JPG (max 10MB)</p>
               <input
                 type="file"
                 accept="image/*"
@@ -272,58 +325,14 @@ export function CertificateGenerator({
               />
               <label
                 htmlFor="template-upload"
-                className={`text-sm px-4 py-2 rounded-lg cursor-pointer ${
+                className={`text-xs px-3 py-1.5 rounded-lg cursor-pointer ${
                   selectedProject
                     ? "bg-white dark:bg-gray-600 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-500"
                     : "bg-gray-300 dark:bg-gray-800 text-gray-500 dark:text-gray-600 cursor-not-allowed"
                 }`}
               >
-                {templateFile ? templateFile.name : "Choose File"}
+                {templateFile ? templateFile.name.substring(0, 20) + (templateFile.name.length > 20 ? '...' : '') : "Choose File"}
               </label>
-            </div>
-          </div>
-
-          {/* Generate Button */}
-          <div className="flex flex-col gap-2 items-center">
-            <button
-              disabled={!showPreview}
-              className={`px-4 py-2 rounded-lg ${
-                showPreview
-                  ? "bg-[#3b5998] hover:bg-[#2d4373] text-white"
-                  : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-600 cursor-not-allowed"
-              }`}
-            >
-              Generate
-            </button>
-            <div className="flex gap-4">
-              <button
-                onClick={handlePrevious}
-                disabled={!showPreview || currentNameIndex === 0}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
-                  showPreview && currentNameIndex > 0
-                    ? "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
-                    : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed"
-                }`}
-              >
-                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
-                  <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                Previous
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={!showPreview || currentNameIndex >= parsedNames.length - 1}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${
-                  showPreview && currentNameIndex < parsedNames.length - 1
-                    ? "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
-                    : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed"
-                }`}
-              >
-                Next
-                <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
-                  <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
             </div>
           </div>
         </div>
