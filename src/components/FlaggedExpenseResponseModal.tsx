@@ -11,14 +11,14 @@ interface FlaggedExpenseResponseModalProps {
 
 export interface CorrectionData {
   lineItem: string;
-  expenseId: string;
-  corrections: {
+  corrections: Array<{
+    expenseId: string;
     particular?: string;
     amount?: number;
     dateOfExpense?: string;
     attachment?: File;
-  };
-  explanation: string;
+    explanation: string;
+  }>;
 }
 
 export function FlaggedExpenseResponseModal({
@@ -28,41 +28,59 @@ export function FlaggedExpenseResponseModal({
   flaggingData,
 }: FlaggedExpenseResponseModalProps) {
   const [selectedExpenseIndex, setSelectedExpenseIndex] = useState(0);
-  const [corrections, setCorrections] = useState<{
-    particular?: string;
-    amount?: string;
-    dateOfExpense?: string;
+  const [allCorrections, setAllCorrections] = useState<{
+    [expenseId: string]: {
+      particular?: string;
+      amount?: string;
+      dateOfExpense?: string;
+      explanation: string;
+    };
   }>({});
-  const [explanation, setExplanation] = useState("");
 
   if (!isOpen || !flaggingData) return null;
 
   const currentExpense = flaggingData.selectedExpenses[selectedExpenseIndex];
   const fieldsToCorrect = flaggingData.fieldsToCorrect;
+  const currentCorrections = allCorrections[currentExpense.id] || { explanation: "" };
+
+  const updateCurrentCorrections = (updates: Partial<typeof currentCorrections>) => {
+    setAllCorrections(prev => ({
+      ...prev,
+      [currentExpense.id]: {
+        ...currentCorrections,
+        ...updates
+      }
+    }));
+  };
 
   const handleConfirm = () => {
+    // Convert all corrections to the format expected
+    const corrections = flaggingData.selectedExpenses.map(expense => {
+      const correctionData = allCorrections[expense.id] || { explanation: "" };
+      return {
+        expenseId: expense.id,
+        ...(fieldsToCorrect.particular && correctionData.particular ? { particular: correctionData.particular } : {}),
+        ...(fieldsToCorrect.amount && correctionData.amount ? { amount: parseFloat(correctionData.amount) } : {}),
+        ...(fieldsToCorrect.dateOfExpense && correctionData.dateOfExpense ? { dateOfExpense: correctionData.dateOfExpense } : {}),
+        explanation: correctionData.explanation || ""
+      };
+    });
+
     const correctionData: CorrectionData = {
       lineItem: flaggingData.lineItem,
-      expenseId: currentExpense.id,
-      corrections: {
-        ...(fieldsToCorrect.particular && corrections.particular ? { particular: corrections.particular } : {}),
-        ...(fieldsToCorrect.amount && corrections.amount ? { amount: parseFloat(corrections.amount) } : {}),
-        ...(fieldsToCorrect.dateOfExpense && corrections.dateOfExpense ? { dateOfExpense: corrections.dateOfExpense } : {}),
-      },
-      explanation,
+      corrections
     };
+    
     onConfirm(correctionData);
     // Reset form
-    setCorrections({});
-    setExplanation("");
+    setAllCorrections({});
     setSelectedExpenseIndex(0);
     onClose();
   };
 
   const handleCancel = () => {
     // Reset form
-    setCorrections({});
-    setExplanation("");
+    setAllCorrections({});
     setSelectedExpenseIndex(0);
     onClose();
   };
@@ -166,8 +184,8 @@ export function FlaggedExpenseResponseModal({
                   <input
                     type="number"
                     step="0.01"
-                    value={corrections.amount || ""}
-                    onChange={(e) => setCorrections({ ...corrections, amount: e.target.value })}
+                    value={currentCorrections.amount || ""}
+                    onChange={(e) => updateCurrentCorrections({ amount: e.target.value })}
                     className="w-full border border-[#939393] rounded-md px-4 py-2 focus:outline-none focus:border-[#174499]"
                     placeholder="₱0.00"
                   />
@@ -182,8 +200,8 @@ export function FlaggedExpenseResponseModal({
               <label className="block text-black mb-2">Corrected Particular:</label>
               <input
                 type="text"
-                value={corrections.particular || ""}
-                onChange={(e) => setCorrections({ ...corrections, particular: e.target.value })}
+                value={currentCorrections.particular || ""}
+                onChange={(e) => updateCurrentCorrections({ particular: e.target.value })}
                 className="w-full border border-[#939393] rounded-md px-4 py-2 focus:outline-none focus:border-[#174499]"
                 placeholder="Enter corrected particular"
               />
@@ -196,8 +214,8 @@ export function FlaggedExpenseResponseModal({
               <label className="block text-black mb-2">Corrected Date of Expense:</label>
               <input
                 type="date"
-                value={corrections.dateOfExpense || ""}
-                onChange={(e) => setCorrections({ ...corrections, dateOfExpense: e.target.value })}
+                value={currentCorrections.dateOfExpense || ""}
+                onChange={(e) => updateCurrentCorrections({ dateOfExpense: e.target.value })}
                 className="w-full border border-[#939393] rounded-md px-4 py-2 focus:outline-none focus:border-[#174499]"
               />
             </div>
@@ -219,8 +237,8 @@ export function FlaggedExpenseResponseModal({
           <div className="mb-6">
             <label className="block text-black mb-2">Explanation for Correction:</label>
             <textarea
-              value={explanation}
-              onChange={(e) => setExplanation(e.target.value)}
+              value={currentCorrections.explanation}
+              onChange={(e) => updateCurrentCorrections({ explanation: e.target.value })}
               className="w-full h-[197px] border border-[#939393] rounded-md p-3 resize-none focus:outline-none focus:border-[#174499]"
               placeholder="Explain why the correction was made..."
             />

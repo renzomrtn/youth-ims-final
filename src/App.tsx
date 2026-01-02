@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ExpenseVerificationProvider } from "./contexts/ExpenseVerificationContext";
 import { Navbar } from "./components/Navbar";
 import { Sidebar } from "./components/Sidebar";
 import { DashboardContent } from "./components/DashboardContent";
@@ -10,17 +11,14 @@ import { LoginPage } from "./components/LoginPage";
 import { KanbanBoard } from "./components/KanbanBoard";
 import { ExpenseVerificationContent } from "./components/ExpenseVerificationContent";
 import { ArchivesContent } from "./components/ArchivesContent";
-import type { CategoryData } from "./components/ArchivesContent";
 import { ArchivesResolutionsContent } from "./components/ArchivesResolutionsContent";
 import { ArchivesOrdinancesContent } from "./components/ArchivesOrdinancesContent";
 import { ArchivesMinutesContent } from "./components/ArchivesMinutesContent";
-import { ArchivesGenericContent } from "./components/ArchivesGenericContent";
 import { PortalManagementContent } from "./components/PortalManagementContent";
 import { PortalVerifiedExpensesContent } from "./components/PortalVerifiedExpensesContent";
 import { PortalLineItemsContent } from "./components/PortalLineItemsContent";
 import { PortalArchivesContent } from "./components/PortalArchivesContent";
 import { PersonnelContent } from "./components/PersonnelContent";
-import { seedDatabase } from "./utils/seedData";
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
@@ -33,10 +31,6 @@ function AppContent() {
   const [viewMode, setViewMode] = useState<
     "federation" | "barangay"
   >("federation");
-  const [isSeeding, setIsSeeding] = useState(false);
-
-  // Custom archive categories state
-  const [customArchiveCategories, setCustomArchiveCategories] = useState<CategoryData[]>([]);
 
   // Kanban state
   const [kanbanData, setKanbanData] = useState<{
@@ -62,18 +56,6 @@ function AppContent() {
   const handleCloseKanban = () => {
     setKanbanData(null);
     setCurrentSubPage(undefined);
-  };
-
-  // Seed database on first load (one-time setup)
-  const handleSeedDatabase = async () => {
-    setIsSeeding(true);
-    const result = await seedDatabase();
-    setIsSeeding(false);
-    if (result.success) {
-      alert('Database seeded successfully! Please refresh the page to see the data.');
-    } else {
-      alert(`Error seeding database: ${result.error}`);
-    }
   };
 
   if (!isAuthenticated) {
@@ -151,60 +133,44 @@ function AppContent() {
                     onSubPageChange={setCurrentSubPage}
                   />
                 )}
-                {currentPage === "archives" && (() => {
-                  // Find if current subpage is a custom archive
-                  const customArchive = customArchiveCategories.find(cat => cat.id === currentSubPage);
-                  
-                  return (
-                    <>
-                      {currentSubPage === "resolutions" ? (
-                        <ArchivesResolutionsContent
-                          darkMode={darkMode}
-                          viewMode={viewMode}
-                          onBack={() =>
-                            setCurrentSubPage(undefined)
-                          }
-                          onSubPageChange={setCurrentSubPage}
-                        />
-                      ) : currentSubPage === "ordinances" ? (
-                        <ArchivesOrdinancesContent
-                          darkMode={darkMode}
-                          viewMode={viewMode}
-                          onBack={() =>
-                            setCurrentSubPage(undefined)
-                          }
-                          onSubPageChange={setCurrentSubPage}
-                        />
-                      ) : currentSubPage === "minutes" ? (
-                        <ArchivesMinutesContent
-                          darkMode={darkMode}
-                          viewMode={viewMode}
-                          onBack={() =>
-                            setCurrentSubPage(undefined)
-                          }
-                          onSubPageChange={setCurrentSubPage}
-                        />
-                      ) : customArchive ? (
-                        <ArchivesGenericContent
-                          darkMode={darkMode}
-                          viewMode={viewMode}
-                          onBack={() =>
-                            setCurrentSubPage(undefined)
-                          }
-                          typeName={customArchive.name}
-                        />
-                      ) : (
-                        <ArchivesContent
-                          darkMode={darkMode}
-                          viewMode={viewMode}
-                          onSubPageChange={setCurrentSubPage}
-                          customCategories={customArchiveCategories}
-                          onCustomCategoriesChange={setCustomArchiveCategories}
-                        />
-                      )}
-                    </>
-                  );
-                })()}
+                {currentPage === "archives" && (
+                  <>
+                    {currentSubPage === "resolutions" ? (
+                      <ArchivesResolutionsContent
+                        darkMode={darkMode}
+                        viewMode={viewMode}
+                        onBack={() =>
+                          setCurrentSubPage(undefined)
+                        }
+                        onSubPageChange={setCurrentSubPage}
+                      />
+                    ) : currentSubPage === "ordinances" ? (
+                      <ArchivesOrdinancesContent
+                        darkMode={darkMode}
+                        viewMode={viewMode}
+                        onBack={() =>
+                          setCurrentSubPage(undefined)
+                        }
+                        onSubPageChange={setCurrentSubPage}
+                      />
+                    ) : currentSubPage === "minutes" ? (
+                      <ArchivesMinutesContent
+                        darkMode={darkMode}
+                        viewMode={viewMode}
+                        onBack={() =>
+                          setCurrentSubPage(undefined)
+                        }
+                        onSubPageChange={setCurrentSubPage}
+                      />
+                    ) : (
+                      <ArchivesContent
+                        darkMode={darkMode}
+                        viewMode={viewMode}
+                        onSubPageChange={setCurrentSubPage}
+                      />
+                    )}
+                  </>
+                )}
                 {currentPage === "portalmanagement" && (
                   <>
                     {currentSubPage === "verifiedexpenses" ? (
@@ -258,7 +224,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ExpenseVerificationProvider>
+        <AppContent />
+      </ExpenseVerificationProvider>
     </AuthProvider>
   );
 }
