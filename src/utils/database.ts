@@ -147,10 +147,12 @@ export const archivesAPI = {
     body: JSON.stringify(data),
   }),
   getDocuments: async (category: string) => fetchFromServer(`/archives/documents?category=${category}`),
-  createDocument: async (data: any) => fetchFromServer('/archives/documents', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
+  createDocument: async (document: any) => {
+    return await fetchFromServer('/archives/documents', {
+      method: 'POST',
+      body: JSON.stringify(document),
+    });
+  },
   updateDocument: async (id: string, data: any) => fetchFromServer(`/archives/documents/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),

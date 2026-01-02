@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { Search, Plus, ChevronLeft, Eye, Edit, FileText } from "lucide-react";
-import svgPaths from "../imports/svg-alv0uriyin";
+import { useState, useEffect } from "react";
+import { Search, Plus, ChevronLeft, Eye, Edit, Clock, FileText } from "lucide-react";
 import { UploadDocumentModal } from "./UploadDocumentModal";
+import { archivesAPI } from "../utils/database";
 
 interface ArchivesMinutesContentProps {
   darkMode: boolean;
@@ -11,6 +11,7 @@ interface ArchivesMinutesContentProps {
 }
 
 interface Minute {
+  id: string;
   number: number;
   recordId: string;
   title: string;
@@ -19,6 +20,7 @@ interface Minute {
   lastEditedBy: string;
   fileType: string;
   fileSize: string;
+  year: string;
 }
 
 export function ArchivesMinutesContent({ 
@@ -27,102 +29,55 @@ export function ArchivesMinutesContent({
   onBack,
   onSubPageChange 
 }: ArchivesMinutesContentProps) {
-  const [selectedYear, setSelectedYear] = useState("2025");
+  const [selectedYear, setSelectedYear] = useState("2024");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [minutes, setMinutes] = useState<Minute[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Default years - always show these even if no documents exist
+  const defaultYears = ["2026", "2025", "2024", "2023", "2022"];
+  const [availableYears, setAvailableYears] = useState<string[]>(defaultYears);
 
-  const years = ["2025", "2024", "2023", "2022"];
+  useEffect(() => {
+    fetchMinutes();
+  }, []);
 
-  // Sample minutes data
-  const minutes: Minute[] = [
-    {
-      number: 8,
-      recordId: "MTS-12718PU21",
-      title: "TITLE",
-      author: "John Dale Cruz",
-      uploadedDate: "September 09, 2024",
-      lastEditedBy: "Emely Rexi",
-      fileType: "PDF",
-      fileSize: "1.4 MB"
-    },
-    {
-      number: 7,
-      recordId: "MTS-1271A5R21",
-      title: "TITLE",
-      author: "John Dale Cruz",
-      uploadedDate: "December 25, 2024",
-      lastEditedBy: "Maria Santos",
-      fileType: "PDF",
-      fileSize: "1.5 MB"
-    },
-    {
-      number: 6,
-      recordId: "MTS-150271B21",
-      title: "TITLE",
-      author: "Pedro Reyes",
-      uploadedDate: "October 21, 2024",
-      lastEditedBy: "Nina Garcia",
-      fileType: "PDF",
-      fileSize: "0.9 MB"
-    },
-    {
-      number: 5,
-      recordId: "MTS-1FF271A21",
-      title: "TITLE",
-      author: "Carlos Mendez",
-      uploadedDate: "September 18, 2024",
-      lastEditedBy: "Linda Cruz",
-      fileType: "PDF",
-      fileSize: "1.1 MB"
-    },
-    {
-      number: 4,
-      recordId: "MTS-13N271B21",
-      title: "TITLE",
-      author: "Robert Tan",
-      uploadedDate: "August 30, 2024",
-      lastEditedBy: "Sarah Lopez",
-      fileType: "PDF",
-      fileSize: "1.0 MB"
-    },
-    {
-      number: 3,
-      recordId: "MTS-1271GER1",
-      title: "TITLE",
-      author: "Jennifer Aquino",
-      uploadedDate: "December 30, 2024",
-      lastEditedBy: "Michael Demas",
-      fileType: "PDF",
-      fileSize: "1.3 MB"
-    },
-    {
-      number: 2,
-      recordId: "MTS-1271VCR21",
-      title: "TITLE",
-      author: "Diana Diwa",
-      uploadedDate: "September 12, 2024",
-      lastEditedBy: "Patricia Cruz",
-      fileType: "PDF",
-      fileSize: "0.8 MB"
-    },
-    {
-      number: 1,
-      recordId: "MTS-121071B21",
-      title: "TITLE",
-      author: "Annalyn Reyes",
-      uploadedDate: "August 25, 2024",
-      lastEditedBy: "Rosa Martinez",
-      fileType: "PDF",
-      fileSize: "0.7 MB"
+  async function fetchMinutes() {
+    try {
+      setLoading(true);
+      const docs = await archivesAPI.getDocuments('minutes');
+      
+      // Extract year from date or year field for each document
+      const docsWithYear = docs.map((doc: any) => ({
+        ...doc,
+        year: doc.year || (doc.date ? doc.date.split('-')[0] : new Date().getFullYear().toString())
+      }));
+      
+      // Extract unique years from documents
+      const docYears = Array.from(new Set(docsWithYear.map((doc: any) => doc.year).filter(Boolean)));
+      
+      // Combine with default years and remove duplicates, then sort descending
+      const allYears = Array.from(new Set([...defaultYears, ...docYears])).sort((a, b) => b.localeCompare(a));
+      setAvailableYears(allYears);
+      
+      setMinutes(docsWithYear);
+    } catch (error) {
+      console.error('Error fetching minutes:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  }
 
-  const filteredMinutes = minutes.filter(minute =>
-    minute.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    minute.recordId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    minute.author.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter minutes by selected year and search query
+  const filteredMinutes = minutes
+    .filter(minute => minute.year === selectedYear)
+    .filter(minute =>
+      (minute.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (minute.recordId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (minute.author || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   return (
     <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900">
@@ -140,9 +95,9 @@ export function ArchivesMinutesContent({
       {/* Year Tabs */}
       <div className="bg-white dark:bg-gray-800 px-8 border-b border-gray-200 dark:border-gray-700">
         <div className="flex gap-8">
-          {years.map((year) => (
+          {availableYears.map((year) => (
             <button
-              key={year}
+              key={`year-tab-${year}`}
               onClick={() => setSelectedYear(year)}
               className={`py-4 px-1 relative ${
                 selectedYear === year
@@ -166,8 +121,8 @@ export function ArchivesMinutesContent({
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-4 mb-6">
               {/* Category Icon */}
-              <div className="w-12 h-12 rounded-[10px] flex items-center justify-center p-2.5 bg-[#3b7ffc]">
-                <FileText className="w-7 h-7 text-white" />
+              <div className="w-12 h-12 rounded-[10px] flex items-center justify-center p-2.5 bg-[#fb2c36]">
+                <Clock className="w-7 h-7 text-white" />
               </div>
               <h2 className="text-xl text-black dark:text-white">Minutes</h2>
             </div>
@@ -186,7 +141,7 @@ export function ArchivesMinutesContent({
               </div>
 
               {/* Add Document Button - Only visible for current year */}
-              {selectedYear === "2025" && (
+              {selectedYear === "2026" && (
                 <button
                   className="flex items-center gap-2 px-5 py-2.5 bg-[#3b5998] hover:bg-[#2d4373] text-white rounded-lg transition-colors"
                   onClick={() => setIsUploadModalOpen(true)}
@@ -224,9 +179,9 @@ export function ArchivesMinutesContent({
                 </tr>
               </thead>
               <tbody>
-                {filteredMinutes.map((minute) => (
+                {filteredMinutes.map((minute, index) => (
                   <tr
-                    key={minute.recordId}
+                    key={minute.id || `minute-${minute.recordId}-${index}`}
                     className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
                   >
                     <td className="px-6 py-6">
@@ -308,6 +263,8 @@ export function ArchivesMinutesContent({
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         darkMode={darkMode}
+        category="minutes"
+        onUploadSuccess={fetchMinutes}
       />
     </div>
   );

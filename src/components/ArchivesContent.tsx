@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText, Scale, Clock, Plus } from "lucide-react";
 import { AddArchiveTypeModal } from "./AddArchiveTypeModal";
+import { archivesAPI } from "../utils/database";
 
 interface ArchivesContentProps {
   darkMode: boolean;
@@ -22,6 +23,38 @@ export interface CategoryData {
 
 export function ArchivesContent({ darkMode, viewMode, onSubPageChange, customCategories, onCustomCategoriesChange }: ArchivesContentProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [documentCounts, setDocumentCounts] = useState<Record<string, number>>({
+    resolutions: 0,
+    ordinances: 0,
+    minutes: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchDocumentCounts() {
+      try {
+        setLoading(true);
+        // Fetch all documents for each category
+        const [resolutionsDocs, ordinancesDocs, minutesDocs] = await Promise.all([
+          archivesAPI.getDocuments('resolutions'),
+          archivesAPI.getDocuments('ordinances'),
+          archivesAPI.getDocuments('minutes'),
+        ]);
+
+        setDocumentCounts({
+          resolutions: resolutionsDocs.length,
+          ordinances: ordinancesDocs.length,
+          minutes: minutesDocs.length,
+        });
+      } catch (error) {
+        console.error('Error fetching document counts:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDocumentCounts();
+  }, []);
 
   const handleCategoryClick = (categoryId: string) => {
     if (onSubPageChange) {
@@ -50,7 +83,7 @@ export function ArchivesContent({ darkMode, viewMode, onSubPageChange, customCat
     {
       id: "resolutions",
       name: "Resolutions",
-      count: 69,
+      count: documentCounts.resolutions,
       icon: <FileText className="w-8 h-8 text-white" />,
       gradient: "linear-gradient(135deg, rgb(43, 127, 255) 0%, rgb(21, 93, 252) 100%)",
       bgGradient: "linear-gradient(162.329deg, rgba(43, 127, 255, 0.35) 0%, rgba(21, 93, 252, 0.35) 100%)"
@@ -58,7 +91,7 @@ export function ArchivesContent({ darkMode, viewMode, onSubPageChange, customCat
     {
       id: "ordinances",
       name: "Ordinances",
-      count: 50,
+      count: documentCounts.ordinances,
       icon: <Scale className="w-8 h-8 text-white" />,
       gradient: "linear-gradient(135deg, rgb(173, 70, 255) 0%, rgb(152, 16, 250) 100%)",
       bgGradient: "linear-gradient(162.329deg, rgba(173, 70, 255, 0.35) 0%, rgba(152, 16, 250, 0.35) 100%)"
@@ -66,7 +99,7 @@ export function ArchivesContent({ darkMode, viewMode, onSubPageChange, customCat
     {
       id: "minutes",
       name: "Minutes",
-      count: 185,
+      count: documentCounts.minutes,
       icon: <Clock className="w-8 h-8 text-white" />,
       gradient: "linear-gradient(135deg, rgb(251, 44, 54) 0%, rgb(231, 0, 11) 100%)",
       bgGradient: "linear-gradient(162.329deg, rgba(251, 44, 54, 0.35) 0%, rgba(231, 0, 11, 0.35) 100%)"

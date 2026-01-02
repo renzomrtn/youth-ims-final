@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, ChevronLeft, Eye, Edit, FileText } from "lucide-react";
-import svgPaths from "../imports/svg-hx3j332lyi";
 import { UploadDocumentModal } from "./UploadDocumentModal";
+import { archivesAPI } from "../utils/database";
 
 interface ArchivesResolutionsContentProps {
   darkMode: boolean;
@@ -11,6 +11,7 @@ interface ArchivesResolutionsContentProps {
 }
 
 interface Resolution {
+  id: string;
   number: number;
   recordId: string;
   title: string;
@@ -19,6 +20,7 @@ interface Resolution {
   lastEditedBy: string;
   fileType: string;
   fileSize: string;
+  year: string;
 }
 
 export function ArchivesResolutionsContent({ 
@@ -27,102 +29,63 @@ export function ArchivesResolutionsContent({
   onBack,
   onSubPageChange 
 }: ArchivesResolutionsContentProps) {
-  const [selectedYear, setSelectedYear] = useState("2025");
+  const [selectedYear, setSelectedYear] = useState("2024");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [resolutions, setResolutions] = useState<Resolution[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Default years - always show these even if no documents exist
+  const defaultYears = ["2026", "2025", "2024", "2023", "2022"];
+  const [availableYears, setAvailableYears] = useState<string[]>(defaultYears);
 
-  const years = ["2025", "2024", "2023", "2022"];
+  useEffect(() => {
+    fetchResolutions();
+  }, []);
 
-  // Sample resolutions data
-  const resolutions: Resolution[] = [
-    {
-      number: 8,
-      recordId: "RID-12118PU21",
-      title: "Resolution on Educational Aid for Disaster Victims",
-      author: "John Dale Cruz",
-      uploadedDate: "September 09, 2024",
-      lastEditedBy: "Emely Rexi",
-      fileType: "PDF",
-      fileSize: "1.4 MB"
-    },
-    {
-      number: 7,
-      recordId: "RID-12711ASR21",
-      title: "Resolution opposing House Bill 10147d and Senate Bill 2707",
-      author: "John Dale Cruz",
-      uploadedDate: "December 25, 2024",
-      lastEditedBy: "Maria Santos",
-      fileType: "PDF",
-      fileSize: "1.5 MB"
-    },
-    {
-      number: 6,
-      recordId: "RID-150273B23",
-      title: "Resolution on Youth-Focused Drug Prevention",
-      author: "Pedro Reyes",
-      uploadedDate: "October 12, 2024",
-      lastEditedBy: "Nina Garcia",
-      fileType: "PDF",
-      fileSize: "0.9 MB"
-    },
-    {
-      number: 5,
-      recordId: "RID-1FT27JJG21",
-      title: "Resolution on Free HIV/AIDS Medication",
-      author: "Carlos Mendez",
-      uploadedDate: "September 18, 2024",
-      lastEditedBy: "Sarah Dale Cruz",
-      fileType: "PDF",
-      fileSize: "1.1 MB"
-    },
-    {
-      number: 4,
-      recordId: "RID-15N271B21",
-      title: "Resolution on Support for Youth Sports League",
-      author: "Robert Tan",
-      uploadedDate: "August 05, 2024",
-      lastEditedBy: "Sarah Lopez",
-      fileType: "PDF",
-      fileSize: "1.0 MB"
-    },
-    {
-      number: 3,
-      recordId: "RID-12716ER3",
-      title: "Resolution on Mental Health Programs for Youth",
-      author: "Jennifer Aquino",
-      uploadedDate: "December 30, 2024",
-      lastEditedBy: "Michael Demas",
-      fileType: "PDF",
-      fileSize: "1.3 MB"
-    },
-    {
-      number: 2,
-      recordId: "RID-1271JVSD21",
-      title: "Resolution on Financial Aid for Students",
-      author: "Diana Diwa",
-      uploadedDate: "September 12, 2024",
-      lastEditedBy: "Patricia Cruz",
-      fileType: "PDF",
-      fileSize: "0.8 MB"
-    },
-    {
-      number: 1,
-      recordId: "RID-121073B11",
-      title: "Resolution",
-      author: "Annalyn Reyes",
-      uploadedDate: "August 25, 2024",
-      lastEditedBy: "Rosa Martinez",
-      fileType: "PDF",
-      fileSize: "0.7 MB"
+  async function fetchResolutions() {
+    try {
+      setLoading(true);
+      const docs = await archivesAPI.getDocuments('resolutions');
+      
+      // Extract year from date or year field for each document
+      const docsWithYear = docs.map((doc: any) => ({
+        ...doc,
+        year: doc.year || (doc.date ? doc.date.split('-')[0] : new Date().getFullYear().toString())
+      }));
+      
+      // Extract unique years from documents
+      const docYears = Array.from(new Set(docsWithYear.map((doc: any) => doc.year).filter(Boolean)));
+      
+      // Combine with default years and remove duplicates, then sort descending
+      const allYears = Array.from(new Set([...defaultYears, ...docYears])).sort((a, b) => b.localeCompare(a));
+      setAvailableYears(allYears);
+      
+      setResolutions(docsWithYear);
+    } catch (error) {
+      console.error('Error fetching resolutions:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  }
 
-  const filteredResolutions = resolutions.filter(resolution =>
-    resolution.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    resolution.recordId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    resolution.author.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter resolutions by selected year and search query
+  const filteredResolutions = resolutions
+    .filter(resolution => resolution.year === selectedYear)
+    .filter(resolution =>
+      (resolution.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (resolution.recordId || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (resolution.author || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900 items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900">
@@ -140,9 +103,9 @@ export function ArchivesResolutionsContent({
       {/* Year Tabs */}
       <div className="bg-white dark:bg-gray-800 px-8 border-b border-gray-200 dark:border-gray-700">
         <div className="flex gap-8">
-          {years.map((year) => (
+          {availableYears.map((year) => (
             <button
-              key={year}
+              key={`year-tab-${year}`}
               onClick={() => setSelectedYear(year)}
               className={`py-4 px-1 relative ${
                 selectedYear === year
@@ -188,7 +151,7 @@ export function ArchivesResolutionsContent({
               </div>
 
               {/* Add Document Button - Only visible for current year */}
-              {selectedYear === "2025" && (
+              {selectedYear === "2026" && (
                 <button 
                   onClick={() => setIsUploadModalOpen(true)}
                   className="flex items-center gap-2 px-5 py-2.5 bg-[#3b5998] hover:bg-[#2d4373] text-white rounded-lg transition-colors"
@@ -226,9 +189,9 @@ export function ArchivesResolutionsContent({
                 </tr>
               </thead>
               <tbody>
-                {filteredResolutions.map((resolution) => (
+                {filteredResolutions.map((resolution, index) => (
                   <tr
-                    key={resolution.recordId}
+                    key={resolution.id || `resolution-${resolution.recordId}-${index}`}
                     className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
                   >
                     <td className="px-6 py-6">
@@ -284,24 +247,26 @@ export function ArchivesResolutionsContent({
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              className="px-4 py-2 text-[#3b5998] hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={currentPage === 1}
-            >
-              Previous
-            </button>
-            <button className="px-4 py-2 bg-[#3b5998] text-white rounded">
-              {currentPage}
-            </button>
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              className="px-4 py-2 text-[#3b5998] hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-            >
-              Next
-            </button>
-          </div>
+          {filteredResolutions.length > 0 && (
+            <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                className="px-4 py-2 text-[#3b5998] hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <button className="px-4 py-2 bg-[#3b5998] text-white rounded">
+                {currentPage}
+              </button>
+              <button
+                onClick={() => setCurrentPage(currentPage + 1)}
+                className="px-4 py-2 text-[#3b5998] hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -310,6 +275,8 @@ export function ArchivesResolutionsContent({
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         darkMode={darkMode}
+        category="resolutions"
+        onUploadSuccess={fetchResolutions}
       />
     </div>
   );
