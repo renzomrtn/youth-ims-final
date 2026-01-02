@@ -16,7 +16,7 @@ interface ExpenseItem {
 interface ExpenseVerificationDetailViewProps {
   darkMode: boolean;
   onBack: () => void;
-  expenseItemId: string; // Add this to identify which expense item to update
+  expenseItemId: string;
   lineItemId: string;
   lineItemTitle: string;
   lineItemArea: string;
@@ -26,14 +26,14 @@ interface ExpenseVerificationDetailViewProps {
   toDate: string;
   submittedBy: string;
   status: "Verified" | "Unverified" | "Pending" | "Flagged";
-  flaggingData?: FlaggingData | null; // Pass flagging data for flagged items
-  particulars?: Particular[]; // Add particulars prop
+  flaggingData?: FlaggingData | null;
+  particulars?: Particular[];
 }
 
 export function ExpenseVerificationDetailView({
   darkMode,
   onBack,
-  expenseItemId, // Accept the expense item ID
+  expenseItemId,
   lineItemId,
   lineItemTitle,
   lineItemArea,
@@ -44,60 +44,24 @@ export function ExpenseVerificationDetailView({
   submittedBy,
   status,
   flaggingData,
-  particulars, // Accept particulars
+  particulars,
 }: ExpenseVerificationDetailViewProps) {
   const { user } = useAuth();
-  const { updateExpenseItem } = useExpenseVerification();
+  const { updateExpenseItem, refreshData } = useExpenseVerification();
   const [selectedExpenseIds, setSelectedExpenseIds] = useState<string[]>([]);
   const [isFlaggingModalOpen, setIsFlaggingModalOpen] = useState(false);
   const [isFlaggedExpenseResponseModalOpen, setIsFlaggedExpenseResponseModalOpen] = useState(false);
 
-  // Use actual particulars if provided, otherwise fallback to mock data
+  // FIXED: Generate unique IDs for particulars that don't have them
   const expenseItems: ExpenseItem[] = particulars 
-    ? particulars.map(p => ({
-        id: p.id,
+    ? particulars.map((p, index) => ({
+        id: p.id || `particular-${index}`, // Use existing ID or generate one based on index
         particular: p.description,
         amount: p.amount,
         date: p.dateOfExpense,
-        hasAttachment: p.hasAttachment
+        hasAttachment: !!p.receiptName || p.hasAttachment || false
       }))
-    : [
-      {
-        id: "1",
-        particular: "Venue Rental (1-day seminar)",
-        amount: 12000.00,
-        date: "September 1, 2025",
-        hasAttachment: true,
-      },
-      {
-        id: "2",
-        particular: "Meals and Snacks for Participants (80 pax)",
-        amount: 15000.00,
-        date: "September 1, 2025",
-        hasAttachment: true,
-      },
-      {
-        id: "3",
-        particular: "Honorarium for Speaker / Resource Person",
-        amount: 8000.00,
-        date: "September 1, 2025",
-        hasAttachment: true,
-      },
-      {
-        id: "4",
-        particular: "Seminar Kits (IDs, pens, notebooks, folders)",
-        amount: 11000.00,
-        date: "September 1, 2025",
-        hasAttachment: true,
-      },
-      {
-        id: "5",
-        particular: "IEC Materials Printing (Tarpaulin, flyers, posters)",
-        amount: 9555.56,
-        date: "September 1, 2025",
-        hasAttachment: true,
-      },
-    ];
+    : [];
 
   const handleCheckboxChange = (expenseId: string) => {
     setSelectedExpenseIds((prev) =>
@@ -115,65 +79,48 @@ export function ExpenseVerificationDetailView({
     }
   };
 
-  const handleApproveClick = () => {
-    // Update the expense item status to "Verified"
-    updateExpenseItem(expenseItemId, {
+  const handleApproveClick = async () => {
+    await updateExpenseItem(expenseItemId, {
       status: "Verified",
-      flaggingData: null // Clear any flagging data
+      flaggingData: null
     });
     
-    // Reset selection
     setSelectedExpenseIds([]);
-    
-    // Go back to the list view to see the updated status
+    await refreshData();
     onBack();
   };
 
-  const handleFlaggingConfirm = (data: FlaggingData) => {
-    console.log("Flagging data:", data);
-    
-    // Add flagged by and date information
+  const handleFlaggingConfirm = async (data: FlaggingData) => {
     const enrichedFlaggingData = {
       ...data,
       flaggedBy: user?.name || "Unknown User",
       flaggedDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     };
     
-    // Update the expense item status to "Flagged" and save flagging data
-    updateExpenseItem(expenseItemId, {
+    await updateExpenseItem(expenseItemId, {
       status: "Flagged",
       flaggingData: enrichedFlaggingData
     });
     
-    // Reset selection and close modal
     setSelectedExpenseIds([]);
     setIsFlaggingModalOpen(false);
-    
-    // Optionally go back to the list view to see the updated status
+    await refreshData();
     onBack();
   };
 
-  const handleFlaggedExpenseResponseConfirm = (data: CorrectionData) => {
-    console.log("Correction data:", data);
-    
-    // Apply corrections to the particulars
+  const handleFlaggedExpenseResponseConfirm = async (data: CorrectionData) => {
     if (particulars) {
-      const updatedParticulars = particulars.map(particular => {
-        // Find if this particular has corrections
-        const correction = data.corrections.find(c => c.expenseId === particular.id);
+      const updatedParticulars = particulars.map((particular, index) => {
+        const particularId = particular.id || `particular-${index}`;
+        const correction = data.corrections.find(c => c.expenseId === particularId);
         
         if (correction) {
-          // Apply corrections to this particular
           return {
             ...particular,
             description: correction.particular || particular.description,
             amount: correction.amount || particular.amount,
             dateOfExpense: correction.dateOfExpense 
-              ? new Date(correction.dateOfExpense).toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })
+              ? new Date(correction.dateOfExpense).toISOString().split('T')[0]
               : particular.dateOfExpense,
           };
         }
@@ -181,29 +128,25 @@ export function ExpenseVerificationDetailView({
         return particular;
       });
 
-      // Calculate new total amount spent
+      // Recalculate the total amount spent based on updated particulars
       const newTotalAmountSpent = updatedParticulars.reduce((sum, p) => sum + p.amount, 0);
       
-      // Update the expense item with corrected particulars and new total
-      updateExpenseItem(expenseItemId, {
+      await updateExpenseItem(expenseItemId, {
         status: "Pending",
         flaggingData: null,
         particulars: updatedParticulars,
         totalAmountSpent: newTotalAmountSpent
       });
     } else {
-      // If no particulars, just update status
-      updateExpenseItem(expenseItemId, {
+      await updateExpenseItem(expenseItemId, {
         status: "Pending",
         flaggingData: null
       });
     }
     
-    // Reset and close modal
     setSelectedExpenseIds([]);
     setIsFlaggedExpenseResponseModalOpen(false);
-    
-    // Go back to the list view to see the updated status
+    await refreshData();
     onBack();
   };
 
@@ -216,232 +159,183 @@ export function ExpenseVerificationDetailView({
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "Verified":
-        return (
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#d1fae5] border border-[#6ee7b7] text-[#047857]">
-            <span className="w-2 h-2 rounded-full bg-[#10b981] mr-2"></span>
-            <span className="text-xs">Verified</span>
-          </div>
-        );
-      case "Unverified":
-        return (
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#fffbeb] border border-[#fe9a00] text-[#e17100]">
-            <span className="w-2 h-2 rounded-full bg-[#fe9a00] mr-2"></span>
-            <span className="text-xs">Unverified</span>
-          </div>
-        );
-      case "Pending":
-        return (
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 border border-gray-300 text-gray-600">
-            <span className="w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
-            <span className="text-xs">Pending</span>
-          </div>
-        );
-      case "Flagged":
-        return (
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#fff7f7] border border-[#fe0000] text-[#e10000]">
-            <span className="w-2 h-2 rounded-full bg-[#fe0000] mr-2"></span>
-            <span className="text-xs">Flagged</span>
-          </div>
-        );
-      default:
-        return null;
-    }
+    const statusStyles = {
+      Verified: { bg: "bg-[#d1fae5]", border: "border-[#6ee7b7]", text: "text-[#047857]", dot: "bg-[#10b981]" },
+      Unverified: { bg: "bg-[#fffbeb]", border: "border-[#fe9a00]", text: "text-[#e17100]", dot: "bg-[#fe9a00]" },
+      Pending: { bg: "bg-gray-100", border: "border-gray-300", text: "text-gray-600", dot: "bg-gray-400" },
+      Flagged: { bg: "bg-[#fff7f7]", border: "border-[#fe0000]", text: "text-[#e10000]", dot: "bg-[#fe0000]" }
+    };
+    const style = statusStyles[status as keyof typeof statusStyles] || statusStyles.Pending;
+    
+    return (
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${style.bg} ${style.border} ${style.text}`}>
+        <span className={`w-2 h-2 rounded-full ${style.dot} mr-2`} />
+        {status}
+      </span>
+    );
   };
 
   return (
-    <div className="flex flex-col min-h-full bg-[#f3f3f3] dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 rounded-lg mx-8 mt-8 mb-8">
-        {/* Tabs - Showing Current Verifications as active */}
-        <div className="px-8 pt-5 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex gap-8">
-            {["Current Verifications", "Past Verifications", "Verifications Monitoring"].map((tab) => (
-              <button
-                key={tab}
-                className={`py-4 px-1 relative ${
-                  tab === "Current Verifications"
-                    ? "text-[#155dfc] dark:text-blue-400"
-                    : "text-[#4a5565] dark:text-gray-400"
-                }`}
-              >
-                <span>{tab}</span>
-                {tab === "Current Verifications" && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#155dfc] dark:bg-blue-400" />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="p-8">
-          {/* Back Button and Status Badge */}
-          <div className="flex items-center justify-between mb-6">
+    <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900">
+      <div className="flex-1 overflow-auto p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <button
               onClick={onBack}
-              className="flex items-center gap-2 text-black dark:text-white hover:text-[#3b5998] dark:hover:text-blue-400 transition-colors"
+              className="flex items-center gap-2 text-black dark:text-white hover:text-[#174499] dark:hover:text-blue-400 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span>Back</span>
+              <span>Back to Expense Verification</span>
             </button>
             {getStatusBadge(status)}
           </div>
 
-          {/* Line Item Details */}
-          <div className="mb-8">
-            <h2 className="text-xl text-black dark:text-white mb-4">
-              Line Item: <br />
-              {lineItemTitle}
-            </h2>
+          {/* Content */}
+          <div className="p-8">
+            {/* Line Item Details */}
+            <div className="mb-8">
+              <h2 className="text-2xl text-black dark:text-white mb-6">
+                {lineItemTitle}
+              </h2>
 
-            <div className="space-y-2 text-black dark:text-white">
-              <p>
-                <span className="font-semibold">Line Item Information:</span>
-              </p>
-              <p className="text-gray-600 dark:text-gray-400">
-                <span className="font-semibold">ID:</span> {lineItemId}
-              </p>
-              <p className="text-gray-600 dark:text-gray-400">
-                <span className="font-semibold">Area of Advocacy:</span> {lineItemArea}
-              </p>
-              <p className="text-gray-600 dark:text-gray-400">
-                <span className="font-semibold">Budget:</span> {formatCurrency(budget)}
-              </p>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Line Item ID</p>
+                    <p className="text-black dark:text-white">{lineItemId}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Area of Advocacy</p>
+                    <p className="text-black dark:text-white">{lineItemArea}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Budget</p>
+                    <p className="text-black dark:text-white">{formatCurrency(budget)}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Total Amount Spent</p>
+                    <p className="text-black dark:text-white text-xl font-semibold">{formatCurrency(totalAmountSpent)}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Expenditure Period</p>
+                    <p className="text-black dark:text-white">From: {fromDate}</p>
+                    <p className="text-black dark:text-white">To: {toDate}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Submitted By</p>
+                    <p className="text-black dark:text-white">{submittedBy}</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="mt-4 space-y-2 text-black dark:text-white">
-              <p>
-                <span className="font-semibold">Total Amount Spent:</span> <br />
-                {formatCurrency(totalAmountSpent)}
-              </p>
-            </div>
-
-            <div className="mt-4 space-y-2 text-black dark:text-white">
-              <p>
-                <span className="font-semibold">Expenditure Period:</span>
-              </p>
-              <p className="text-gray-600 dark:text-gray-400">
-                <span className="font-semibold">From:</span> {fromDate}
-              </p>
-              <p className="text-gray-600 dark:text-gray-400">
-                <span className="font-semibold">To:</span> {toDate}
-              </p>
-            </div>
-
-            <div className="mt-4 space-y-2 text-black dark:text-white">
-              <p>
-                <span className="font-semibold">Submitted By:</span> <br />
-                {submittedBy}
-              </p>
-            </div>
-          </div>
-
-          {/* Expense Items Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  {/* Only show checkbox column for Auditor/President and when NOT Verified */}
-                  {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
-                    <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300 w-16">
-                      {/* Checkbox column */}
-                    </th>
-                  )}
-                  <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">
-                    Particulars
-                  </th>
-                  <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">
-                    Amount
-                  </th>
-                  <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">
-                    Date of Expense
-                  </th>
-                  <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">
-                    Attachment
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {expenseItems.map((item) => (
-                  <tr
-                    key={item.id}
-                    className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                  >
-                    {/* Only show checkboxes for Auditor/President and when NOT Verified */}
-                    {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
-                      <td className="px-6 py-4">
-                        <input
-                          type="checkbox"
-                          className="w-4 h-4 border-2 border-gray-400 rounded"
-                          checked={selectedExpenseIds.includes(item.id)}
-                          onChange={() => handleCheckboxChange(item.id)}
-                        />
-                      </td>
-                    )}
-                    <td className="px-6 py-4">
-                      <p className="text-black dark:text-white">{item.particular}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-black dark:text-white">{formatCurrency(item.amount)}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-black dark:text-white">{item.date}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      {item.hasAttachment && (
-                        <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors">
-                          <FileImage className="w-4 h-4 text-[#6d798e] dark:text-gray-400" />
-                        </button>
+            {/* Expense Items Table */}
+            <div className="mb-6">
+              <h3 className="text-lg text-black dark:text-white mb-4">Expense Breakdown</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
+                        <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300 w-16"></th>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Budget Summary and Action Buttons */}
-          <div className="mt-8 flex items-end justify-end">
-            <div className="w-96 space-y-4">
-              <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
-                <span className="text-black dark:text-white">Budget:</span>
-                <span className="text-xl text-black dark:text-white">{formatCurrency(budget)}</span>
+                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Particulars</th>
+                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Amount</th>
+                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Date of Expense</th>
+                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Attachment</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {expenseItems.length > 0 ? (
+                      expenseItems.map((item) => (
+                        <tr
+                          key={item.id}
+                          className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                        >
+                          {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
+                            <td className="px-6 py-4">
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 border-2 border-gray-400 rounded"
+                                checked={selectedExpenseIds.includes(item.id)}
+                                onChange={() => handleCheckboxChange(item.id)}
+                              />
+                            </td>
+                          )}
+                          <td className="px-6 py-4 text-black dark:text-white">{item.particular}</td>
+                          <td className="px-6 py-4 text-black dark:text-white">{formatCurrency(item.amount)}</td>
+                          <td className="px-6 py-4 text-black dark:text-white">{item.date}</td>
+                          <td className="px-6 py-4">
+                            {item.hasAttachment && (
+                              <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors">
+                                <FileImage className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                          No expense items found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
-              <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
-                <span className="text-black dark:text-white">Total Amount Spent:</span>
-                <span className="text-xl text-black dark:text-white">{formatCurrency(totalAmountSpent)}</span>
+            </div>
+
+            {/* Budget Summary and Action Buttons */}
+            <div className="flex justify-end">
+              <div className="w-96 space-y-4">
+                <div className="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 pt-4">
+                  <span className="text-gray-600 dark:text-gray-400">Budget:</span>
+                  <span className="text-xl text-black dark:text-white font-semibold">{formatCurrency(budget)}</span>
+                </div>
+                <div className="flex justify-between items-center pb-4 border-b-2 border-gray-300 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Total Amount Spent:</span>
+                  <span className="text-xl text-black dark:text-white font-semibold">{formatCurrency(totalAmountSpent)}</span>
+                </div>
+
+                {/* Action Buttons for Treasurer */}
+                {user?.role === "SKF Treasurer" && status === "Flagged" && (
+                  <div className="pt-4">
+                    <button
+                      className="w-full px-8 py-2.5 bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-lg transition-colors"
+                      onClick={() => setIsFlaggedExpenseResponseModalOpen(true)}
+                    >
+                      Respond to Flag
+                    </button>
+                  </div>
+                )}
+
+                {/* Action Buttons for Auditor and President */}
+                {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      className="flex-1 px-6 py-2.5 bg-[#ef4444] hover:bg-[#dc2626] text-white rounded-lg transition-colors"
+                      onClick={handleFlagClick}
+                    >
+                      Flag
+                    </button>
+                    <button
+                      className="flex-1 px-6 py-2.5 bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-lg transition-colors"
+                      onClick={handleApproveClick}
+                    >
+                      Approve
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {/* Action Buttons - Different for different roles */}
-              {user?.role === "SKF Treasurer" && status === "Flagged" && (
-                <div className="flex justify-end pt-4">
-                  <button
-                    className="px-8 py-2.5 bg-[#174499] hover:bg-[#0f2d66] text-white rounded-lg transition-colors"
-                    onClick={() => setIsFlaggedExpenseResponseModalOpen(true)}
-                  >
-                    Respond to Flag
-                  </button>
-                </div>
-              )}
-
-              {/* Action Buttons - Only show for Auditor and President and when NOT Verified */}
-              {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
-                <div className="flex gap-3 pt-4">
-                  <button
-                    className="flex-1 px-6 py-2.5 bg-[#ef4444] hover:bg-[#dc2626] text-white rounded-lg transition-colors"
-                    onClick={handleFlagClick}
-                  >
-                    Flag
-                  </button>
-                  <button
-                    className="flex-1 px-6 py-2.5 bg-[#3b5998] hover:bg-[#2d4373] text-white rounded-lg transition-colors"
-                    onClick={handleApproveClick}
-                  >
-                    Approve
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
