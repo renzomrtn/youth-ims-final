@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useState } from "react";
 import { FlaggingModal, FlaggingData } from "./FlaggingModal";
 import { FlaggedExpenseResponseModal, CorrectionData } from "./FlaggedExpenseResponseModal";
+import { Particular, useExpenseVerification } from "../contexts/ExpenseVerificationContext";
 
 interface ExpenseItem {
   id: string;
@@ -15,6 +16,7 @@ interface ExpenseItem {
 interface ExpenseVerificationDetailViewProps {
   darkMode: boolean;
   onBack: () => void;
+  expenseItemId: string; // Add this to identify which expense item to update
   lineItemId: string;
   lineItemTitle: string;
   lineItemArea: string;
@@ -25,11 +27,13 @@ interface ExpenseVerificationDetailViewProps {
   submittedBy: string;
   status: "Verified" | "Unverified" | "Pending" | "Flagged";
   flaggingData?: FlaggingData | null; // Pass flagging data for flagged items
+  particulars?: Particular[]; // Add particulars prop
 }
 
 export function ExpenseVerificationDetailView({
   darkMode,
   onBack,
+  expenseItemId, // Accept the expense item ID
   lineItemId,
   lineItemTitle,
   lineItemArea,
@@ -40,50 +44,60 @@ export function ExpenseVerificationDetailView({
   submittedBy,
   status,
   flaggingData,
+  particulars, // Accept particulars
 }: ExpenseVerificationDetailViewProps) {
   const { user } = useAuth();
+  const { updateExpenseItem } = useExpenseVerification();
   const [selectedExpenseIds, setSelectedExpenseIds] = useState<string[]>([]);
   const [isFlaggingModalOpen, setIsFlaggingModalOpen] = useState(false);
   const [isFlaggedExpenseResponseModalOpen, setIsFlaggedExpenseResponseModalOpen] = useState(false);
 
-  // Mock expense items
-  const expenseItems: ExpenseItem[] = [
-    {
-      id: "1",
-      particular: "Venue Rental (1-day seminar)",
-      amount: 12000.00,
-      date: "September 1, 2025",
-      hasAttachment: true,
-    },
-    {
-      id: "2",
-      particular: "Meals and Snacks for Participants (80 pax)",
-      amount: 15000.00,
-      date: "September 1, 2025",
-      hasAttachment: true,
-    },
-    {
-      id: "3",
-      particular: "Honorarium for Speaker / Resource Person",
-      amount: 8000.00,
-      date: "September 1, 2025",
-      hasAttachment: true,
-    },
-    {
-      id: "4",
-      particular: "Seminar Kits (IDs, pens, notebooks, folders)",
-      amount: 11000.00,
-      date: "September 1, 2025",
-      hasAttachment: true,
-    },
-    {
-      id: "5",
-      particular: "IEC Materials Printing (Tarpaulin, flyers, posters)",
-      amount: 9555.56,
-      date: "September 1, 2025",
-      hasAttachment: true,
-    },
-  ];
+  // Use actual particulars if provided, otherwise fallback to mock data
+  const expenseItems: ExpenseItem[] = particulars 
+    ? particulars.map(p => ({
+        id: p.id,
+        particular: p.description,
+        amount: p.amount,
+        date: p.dateOfExpense,
+        hasAttachment: p.hasAttachment
+      }))
+    : [
+      {
+        id: "1",
+        particular: "Venue Rental (1-day seminar)",
+        amount: 12000.00,
+        date: "September 1, 2025",
+        hasAttachment: true,
+      },
+      {
+        id: "2",
+        particular: "Meals and Snacks for Participants (80 pax)",
+        amount: 15000.00,
+        date: "September 1, 2025",
+        hasAttachment: true,
+      },
+      {
+        id: "3",
+        particular: "Honorarium for Speaker / Resource Person",
+        amount: 8000.00,
+        date: "September 1, 2025",
+        hasAttachment: true,
+      },
+      {
+        id: "4",
+        particular: "Seminar Kits (IDs, pens, notebooks, folders)",
+        amount: 11000.00,
+        date: "September 1, 2025",
+        hasAttachment: true,
+      },
+      {
+        id: "5",
+        particular: "IEC Materials Printing (Tarpaulin, flyers, posters)",
+        amount: 9555.56,
+        date: "September 1, 2025",
+        hasAttachment: true,
+      },
+    ];
 
   const handleCheckboxChange = (expenseId: string) => {
     setSelectedExpenseIds((prev) =>
@@ -101,18 +115,96 @@ export function ExpenseVerificationDetailView({
     }
   };
 
+  const handleApproveClick = () => {
+    // Update the expense item status to "Verified"
+    updateExpenseItem(expenseItemId, {
+      status: "Verified",
+      flaggingData: null // Clear any flagging data
+    });
+    
+    // Reset selection
+    setSelectedExpenseIds([]);
+    
+    // Go back to the list view to see the updated status
+    onBack();
+  };
+
   const handleFlaggingConfirm = (data: FlaggingData) => {
     console.log("Flagging data:", data);
-    // Here you would typically submit the flagging data to the backend
-    // Reset selection after flagging
+    
+    // Add flagged by and date information
+    const enrichedFlaggingData = {
+      ...data,
+      flaggedBy: user?.name || "Unknown User",
+      flaggedDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    };
+    
+    // Update the expense item status to "Flagged" and save flagging data
+    updateExpenseItem(expenseItemId, {
+      status: "Flagged",
+      flaggingData: enrichedFlaggingData
+    });
+    
+    // Reset selection and close modal
     setSelectedExpenseIds([]);
+    setIsFlaggingModalOpen(false);
+    
+    // Optionally go back to the list view to see the updated status
+    onBack();
   };
 
   const handleFlaggedExpenseResponseConfirm = (data: CorrectionData) => {
     console.log("Correction data:", data);
-    // Here you would typically submit the correction data to the backend
-    // Reset selection after flagging
+    
+    // Apply corrections to the particulars
+    if (particulars) {
+      const updatedParticulars = particulars.map(particular => {
+        // Find if this particular has corrections
+        const correction = data.corrections.find(c => c.expenseId === particular.id);
+        
+        if (correction) {
+          // Apply corrections to this particular
+          return {
+            ...particular,
+            description: correction.particular || particular.description,
+            amount: correction.amount || particular.amount,
+            dateOfExpense: correction.dateOfExpense 
+              ? new Date(correction.dateOfExpense).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })
+              : particular.dateOfExpense,
+          };
+        }
+        
+        return particular;
+      });
+
+      // Calculate new total amount spent
+      const newTotalAmountSpent = updatedParticulars.reduce((sum, p) => sum + p.amount, 0);
+      
+      // Update the expense item with corrected particulars and new total
+      updateExpenseItem(expenseItemId, {
+        status: "Pending",
+        flaggingData: null,
+        particulars: updatedParticulars,
+        totalAmountSpent: newTotalAmountSpent
+      });
+    } else {
+      // If no particulars, just update status
+      updateExpenseItem(expenseItemId, {
+        status: "Pending",
+        flaggingData: null
+      });
+    }
+    
+    // Reset and close modal
     setSelectedExpenseIds([]);
+    setIsFlaggedExpenseResponseModalOpen(false);
+    
+    // Go back to the list view to see the updated status
+    onBack();
   };
 
   const getSelectedExpenses = () => {
@@ -250,8 +342,8 @@ export function ExpenseVerificationDetailView({
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  {/* Only show checkbox column for Auditor/President */}
-                  {(user?.role === "SKF Auditor" || user?.role === "SKF President") && (
+                  {/* Only show checkbox column for Auditor/President and when NOT Verified */}
+                  {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
                     <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300 w-16">
                       {/* Checkbox column */}
                     </th>
@@ -276,8 +368,8 @@ export function ExpenseVerificationDetailView({
                     key={item.id}
                     className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
                   >
-                    {/* Only show checkboxes for Auditor/President */}
-                    {(user?.role === "SKF Auditor" || user?.role === "SKF President") && (
+                    {/* Only show checkboxes for Auditor/President and when NOT Verified */}
+                    {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
                       <td className="px-6 py-4">
                         <input
                           type="checkbox"
@@ -333,8 +425,8 @@ export function ExpenseVerificationDetailView({
                 </div>
               )}
 
-              {/* Action Buttons - Only show for Auditor and President */}
-              {(user?.role === "SKF Auditor" || user?.role === "SKF President") && (
+              {/* Action Buttons - Only show for Auditor and President and when NOT Verified */}
+              {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
                 <div className="flex gap-3 pt-4">
                   <button
                     className="flex-1 px-6 py-2.5 bg-[#ef4444] hover:bg-[#dc2626] text-white rounded-lg transition-colors"
@@ -342,7 +434,10 @@ export function ExpenseVerificationDetailView({
                   >
                     Flag
                   </button>
-                  <button className="flex-1 px-6 py-2.5 bg-[#3b5998] hover:bg-[#2d4373] text-white rounded-lg transition-colors">
+                  <button
+                    className="flex-1 px-6 py-2.5 bg-[#3b5998] hover:bg-[#2d4373] text-white rounded-lg transition-colors"
+                    onClick={handleApproveClick}
+                  >
                     Approve
                   </button>
                 </div>

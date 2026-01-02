@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, Plus, Info, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { useExpenseVerification } from "../contexts/ExpenseVerificationContext";
 import { ExpenseVerificationModal, ExpenseVerificationData } from "./ExpenseVerificationModal";
 import { ExpenseVerificationDetailView } from "./ExpenseVerificationDetailView";
 import { FlaggingData } from "./FlaggingModal";
@@ -22,10 +23,20 @@ interface ExpenseItem {
   toDate: string;
   submittedBy: string;
   status: "Verified" | "Unverified" | "Pending" | "Flagged";
+  particulars?: {
+    id: string;
+    description: string;
+    amount: number;
+    dateOfExpense: string;
+    receipt: string;
+    hasAttachment: boolean;
+  }[];
+  flaggingData?: FlaggingData;
 }
 
 export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange }: ExpenseVerificationContentProps) {
   const { user } = useAuth();
+  const { expenseItems, setExpenseItems, addExpenseItem } = useExpenseVerification();
   const [activeTab, setActiveTab] = useState("current");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,69 +71,6 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
       onSubPageChange(activeTab);
     }
   }, [activeTab, onSubPageChange]);
-
-  const expenseItems: ExpenseItem[] = [
-    {
-      id: "1",
-      lineItemId: "ID: LI-2025/810-26ZQ",
-      lineItem: "HIV/AIDS Awareness Seminar",
-      areaOfParticipation: "Adolescent and Youth Health",
-      budget: 55555.56,
-      totalAmountSpent: 55555.56,
-      fromDate: "September 1, 2025",
-      toDate: "September 1, 2025",
-      submittedBy: "Maria Garcia",
-      status: "Flagged"
-    },
-    {
-      id: "2",
-      lineItemId: "ID: LI-2025/801-LZXIE",
-      lineItem: "Anti-Illegal Drugs Seminar",
-      areaOfParticipation: "Peace Building and Security",
-      budget: 55555.56,
-      totalAmountSpent: 55555.56,
-      fromDate: "September 1, 2025",
-      toDate: "September 1, 2025",
-      submittedBy: "Maria Garcia",
-      status: "Verified"
-    },
-    {
-      id: "3",
-      lineItemId: "ID: LI-2025/802-ZWPK",
-      lineItem: "Leadership Training Camp",
-      areaOfParticipation: "Quality Education",
-      budget: 55555.56,
-      totalAmountSpent: 55555.56,
-      fromDate: "September 1, 2025",
-      toDate: "September 1, 2025",
-      submittedBy: "Maria Garcia",
-      status: "Verified"
-    },
-    {
-      id: "4",
-      lineItemId: "ID: LI-2025/803-9JKL",
-      lineItem: "Environmental Cleanup Drive",
-      areaOfParticipation: "Sports Development",
-      budget: 55555.56,
-      totalAmountSpent: 55555.56,
-      fromDate: "September 1, 2025",
-      toDate: "September 1, 2025",
-      submittedBy: "Maria Garcia",
-      status: "Verified"
-    },
-    {
-      id: "5",
-      lineItemId: "ID: LI-2025/804-82HQ",
-      lineItem: "Youth Sports Festival",
-      areaOfParticipation: "Good Governance",
-      budget: 55555.56,
-      totalAmountSpent: 55555.56,
-      fromDate: "September 1, 2025",
-      toDate: "September 1, 2025",
-      submittedBy: "Maria Garcia",
-      status: "Verified"
-    }
-  ];
 
   const pastExpenseItems: ExpenseItem[] = [
     {
@@ -349,7 +297,63 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
 
   const handleExpenseVerificationConfirm = (data: ExpenseVerificationData) => {
     console.log("Expense verification submitted:", data);
-    // Here you would typically submit the expense verification data
+    
+    // Get the line item information from the lineItems in the modal
+    const lineItemInfo = {
+      "LI-2025/810-2K2Q": { name: "HIV/AIDS Awareness Seminar", area: "Adolescent and Youth Health" },
+      "LI-2025/909-9KCY": { name: "Anti-Illegal Drugs Seminar", area: "Peace Building and Security" },
+      "LI-2025/908-LTTC": { name: "Leadership Training Camp", area: "Quality Education" },
+      "LI-2025/907-K98N": { name: "Environmental Cleanup Drive", area: "Sports Development" },
+      "LI-2025/906-P48T": { name: "Youth Sports Festival", area: "Good Governance" }
+    };
+
+    const selectedLineItemInfo = lineItemInfo[data.lineItem as keyof typeof lineItemInfo] || {
+      name: "Unknown Line Item",
+      area: "Unknown Area"
+    };
+
+    // Calculate total amount spent from particulars
+    const totalAmountSpent = data.particulars.reduce((sum, p) => sum + (p.amount || 0), 0);
+
+    // Format dates from YYYY-MM-DD to readable format
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
+
+    // Generate a unique ID for the new expense item
+    const newId = String(Math.max(...expenseItems.map(item => parseInt(item.id) || 0)) + 1);
+
+    // Convert particulars to the format expected by the context
+    const formattedParticulars = data.particulars.map((p, index) => ({
+      id: String(index + 1),
+      description: p.description,
+      amount: p.amount,
+      dateOfExpense: formatDate(p.dateOfExpense),
+      receipt: p.receipt,
+      hasAttachment: !!p.receipt
+    }));
+
+    // Create new expense item
+    const newExpenseItem = {
+      id: newId,
+      lineItemId: `ID: ${data.lineItem}`,
+      lineItem: selectedLineItemInfo.name,
+      areaOfParticipation: selectedLineItemInfo.area,
+      budget: data.budget,
+      totalAmountSpent: totalAmountSpent,
+      fromDate: formatDate(data.expenditurePeriod.from),
+      toDate: formatDate(data.expenditurePeriod.to),
+      submittedBy: user?.name || "Unknown User",
+      status: "Pending" as const,
+      particulars: formattedParticulars
+    };
+
+    // Add to the expense items using the context
+    addExpenseItem(newExpenseItem);
+    
+    // Show success message (optional)
+    console.log("New expense verification added:", newExpenseItem);
   };
 
   // If viewing detail, show the detail view instead
@@ -358,6 +362,7 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
       <ExpenseVerificationDetailView
         darkMode={darkMode}
         onBack={() => setSelectedExpenseItem(null)}
+        expenseItemId={selectedExpenseItem.id}
         lineItemId={selectedExpenseItem.lineItemId}
         lineItemTitle={selectedExpenseItem.lineItem}
         lineItemArea={selectedExpenseItem.areaOfParticipation}
@@ -367,7 +372,8 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
         toDate={selectedExpenseItem.toDate}
         submittedBy={selectedExpenseItem.submittedBy}
         status={selectedExpenseItem.status}
-        flaggingData={selectedExpenseItem.status === "Flagged" ? mockFlaggingData : null}
+        flaggingData={selectedExpenseItem.flaggingData || null}
+        particulars={selectedExpenseItem.particulars}
       />
     );
   }
