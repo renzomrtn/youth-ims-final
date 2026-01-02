@@ -7,6 +7,9 @@ import { CertificateGenerator } from "./CertificateGenerator";
 import svgPaths from "../imports/svg-u8mtnpgcn3";
 import React from "react";
 
+import { projectsAPI } from "../utils/database";
+import { useEffect } from "react";
+
 interface ProjectsContentProps {
   darkMode: boolean;
   viewMode: "federation" | "barangay";
@@ -75,84 +78,27 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     lineItemId: string;
     projectTitle: string;
   } | null>(null);
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: 1,
-      proponent: "Melody Marks",
-      title: "HIV/AIDS Awareness Seminar",
-      lineItemId: "LI-L-2024/910-2K2Q",
-      lineItemArea: "Health Promotion",
-      budget: "₱25,000.00",
-      spent: "₱22,500.00",
-      startDate: "Jan 15, 2024",
-      dueDate: "Mar 30, 2024",
-      accomplished: "Mar 28, 2024",
-      progress: 100,
-      status: "Completed",
-      expenseStatus: "Verified",
-      committees: [
-        {
-          name: "Executive",
-          chairman: { name: "John Smith", initials: "JS", gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" },
-          viceChairman: { name: "Jane Doe", initials: "JD", gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" },
-          members: [
-            { name: "Alice Johnson", initials: "AJ", gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
-            { name: "Bob Williams", initials: "BW", gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" },
-          ]
-        },
-        {
-          name: "Finance",
-          chairman: { name: "Mike Brown", initials: "MB", gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)" },
-          viceChairman: { name: "Sarah Davis", initials: "SD", gradient: "linear-gradient(135deg, #30cfd0 0%, #330867 100%)" },
-          members: [
-            { name: "Tom Wilson", initials: "TW", gradient: "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)" },
-            { name: "Emma Garcia", initials: "EG", gradient: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)" },
-          ]
-        }
-      ]
-    },
-    {
-      id: 2,
-      proponent: "Teddy Tarantino",
-      title: "Youth Leadership Training",
-      lineItemId: "LI-L-2024/911-4X89",
-      lineItemArea: "Leadership Development",
-      budget: "₱35,000.00",
-      spent: "₱28,000.00",
-      startDate: "Feb 1, 2024",
-      dueDate: "Jun 30, 2024",
-      accomplished: "Jun 28, 2024",
-      progress: 100,
-      status: "Completed",
-      expenseStatus: "Verified",
-      committees: [
-        {
-          name: "Program",
-          chairman: { name: "Lisa Martinez", initials: "LM", gradient: "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)" },
-          viceChairman: { name: "David Lee", initials: "DL", gradient: "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)" },
-          members: [
-            { name: "Chris Taylor", initials: "CT", gradient: "linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)" },
-          ]
-        }
-      ]
-    },
-    {
-      id: 3,
-      proponent: "Max Ellis",
-      title: "Community Sports Festival",
-      lineItemId: "LI-L-2024/912-7M4P",
-      lineItemArea: "Sports & Recreation",
-      budget: "₱50,000.00",
-      spent: "₱35,000.00",
-      startDate: "Mar 10, 2024",
-      dueDate: "Dec 15, 2024",
-      accomplished: "",
-      progress: 70,
-      status: "In Progress",
-      expenseStatus: "Pending",
-      committees: []
+  const [projects, setProjects] = useState<Project[]>([  ]);
+
+  useEffect(() => {
+  const loadProjects = async () => {
+    try {
+      const data = await projectsAPI.getAll();
+      console.log('Loaded projects:', data); // ← Add this to debug
+      if (data && Array.isArray(data)) {
+        setProjects(data);
+      } else {
+        console.error('Invalid projects data:', data);
+        setProjects([]); // Fallback to empty array
+      }
+    } catch (error) {
+      console.error("Error loading projects:", error);
+      setProjects([]); // Fallback to empty array on error
     }
-  ]);
+  };
+  
+  loadProjects();
+}, []);
 
   // Mock projects data - reference to state
   const mockProjects = projects;
@@ -169,7 +115,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
   };
 
   // Step 2: Handle second modal confirm - create project
-  const handleCommitteeMembershipsConfirm = (committees: Array<{
+  const handleCommitteeMembershipsConfirm = async (committees: Array<{
     id: string;
     name: string;
     chairman: string;
@@ -246,9 +192,18 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
       committees: formattedCommittees
     };
 
-    setProjects([...projects, newProject]);
-    setIsCommitteeMembershipsModalOpen(false);
-    setPendingProjectData(null);
+    try {
+      // ✨ Save to database!
+      await projectsAPI.create(newProject);
+
+      // Then update local state
+      setProjects([...projects, newProject]);
+      setIsCommitteeMembershipsModalOpen(false);
+      setPendingProjectData(null);
+    } catch (error) {
+      console.error("Error creating project:", error);
+      alert("Failed to create project. Please try again.");
+    }
   };
 
   const handleCommitteeMembershipsClose = () => {
@@ -326,9 +281,8 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
             >
               <h3 className="text-black dark:text-white">Projects for 2024</h3>
               <ChevronDown
-                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${
-                  expandedYears.includes(2024) ? "rotate-180" : ""
-                }`}
+                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${expandedYears.includes(2024) ? "rotate-180" : ""
+                  }`}
               />
             </button>
             {expandedYears.includes(2024) && (
@@ -367,14 +321,12 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                           <div className="text-gray-600 dark:text-gray-400 text-sm">Accomplished: {project.accomplished}</div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-sm border-2 flex items-center gap-1.5 w-fit ${
-                            project.status === "Completed" 
-                              ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-600 dark:border-green-400" 
-                              : "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-600 dark:border-orange-400"
-                          }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${
-                              project.status === "Completed" ? "bg-green-600 dark:bg-green-400" : "bg-orange-600 dark:bg-orange-400"
-                            }`} />
+                          <span className={`px-3 py-1 rounded-full text-sm border-2 flex items-center gap-1.5 w-fit ${project.status === "Completed"
+                            ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-600 dark:border-green-400"
+                            : "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-600 dark:border-orange-400"
+                            }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${project.status === "Completed" ? "bg-green-600 dark:bg-green-400" : "bg-orange-600 dark:bg-orange-400"
+                              }`} />
                             {project.status}
                           </span>
                         </td>
@@ -399,9 +351,8 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
             >
               <h3 className="text-black dark:text-white">Projects for 2023</h3>
               <ChevronDown
-                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${
-                  expandedYears.includes(2023) ? "rotate-180" : ""
-                }`}
+                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${expandedYears.includes(2023) ? "rotate-180" : ""
+                  }`}
               />
             </button>
             {expandedYears.includes(2023) && (
@@ -419,9 +370,8 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
             >
               <h3 className="text-black dark:text-white">Projects for 2022</h3>
               <ChevronDown
-                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${
-                  expandedYears.includes(2022) ? "rotate-180" : ""
-                }`}
+                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${expandedYears.includes(2022) ? "rotate-180" : ""
+                  }`}
               />
             </button>
             {expandedYears.includes(2022) && (
@@ -490,7 +440,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                     className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
                   >
                     <td className="px-6 py-4">
-                      {project.committees.length > 0 && (
+                      {project.committees?.length > 0 && (
                         <button
                           onClick={() => toggleRow(project.id)}
                           className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-transform"
@@ -532,32 +482,28 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                           />
                         </div>
                       </div>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${
-                        project.status === "Completed" 
-                          ? "bg-[#d1fae5] border-[#6ee7b7] text-[#047857]" 
-                          : "bg-[#fffbeb] border-[#fe9a00] text-[#e17100]"
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full mr-2 ${
-                          project.status === "Completed" ? "bg-[#10b981]" : "bg-[#fe9a00]"
-                        }`} />
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${project.status === "Completed"
+                        ? "bg-[#d1fae5] border-[#6ee7b7] text-[#047857]"
+                        : "bg-[#fffbeb] border-[#fe9a00] text-[#e17100]"
+                        }`}>
+                        <span className={`w-2 h-2 rounded-full mr-2 ${project.status === "Completed" ? "bg-[#10b981]" : "bg-[#fe9a00]"
+                          }`} />
                         {project.status}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${
-                        project.expenseStatus === "Verified" 
-                          ? "bg-[#d1fae5] border-[#6ee7b7] text-[#047857]" 
-                          : project.expenseStatus === "Pending"
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${project.expenseStatus === "Verified"
+                        ? "bg-[#d1fae5] border-[#6ee7b7] text-[#047857]"
+                        : project.expenseStatus === "Pending"
                           ? "bg-gray-100 border-gray-300 text-gray-600"
                           : "bg-[#fff7f7] border-[#fe0000] text-[#e10000]"
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full mr-2 ${
-                          project.expenseStatus === "Verified" 
-                            ? "bg-[#10b981]" 
-                            : project.expenseStatus === "Pending"
+                        }`}>
+                        <span className={`w-2 h-2 rounded-full mr-2 ${project.expenseStatus === "Verified"
+                          ? "bg-[#10b981]"
+                          : project.expenseStatus === "Pending"
                             ? "bg-gray-400"
                             : "bg-[#fe0000]"
-                        }`} />
+                          }`} />
                         {project.expenseStatus}
                       </span>
                     </td>
@@ -573,8 +519,8 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                     <tr className="bg-gray-50 dark:bg-gray-800">
                       <td colSpan={9} className="px-6 py-6">
                         <div className="grid grid-cols-4 gap-4">
-                          {project.committees.map((committee, idx) => (
-                            <button
+                          {project.committees?.map((committee, idx) => (
+                              <button
                               key={idx}
                               onClick={() => onOpenKanban({
                                 projectTitle: project.title,
@@ -587,7 +533,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                               <h3 className="text-center text-[#364153] dark:text-gray-200 mb-4">
                                 Committee: {committee.name}
                               </h3>
-                              
+
                               {/* Chairman */}
                               <div className="flex items-center gap-2 mb-3">
                                 <div
@@ -675,11 +621,10 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
             <button
               key={tab}
               onClick={() => handleTabChange(tab.toLowerCase().replace(/\s+/g, ""))}
-              className={`py-4 relative ${
-                activeTab === tab.toLowerCase().replace(/\s+/g, "")
-                  ? "text-[#174499] dark:text-blue-400"
-                  : "text-[#606060] dark:text-gray-400"
-              }`}
+              className={`py-4 relative ${activeTab === tab.toLowerCase().replace(/\s+/g, "")
+                ? "text-[#174499] dark:text-blue-400"
+                : "text-[#606060] dark:text-gray-400"
+                }`}
             >
               <span>{tab}</span>
               {activeTab === tab.toLowerCase().replace(/\s+/g, "") && (
@@ -701,11 +646,11 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
       <CreateProjectModal isOpen={isCreateProjectModalOpen} onClose={() => setIsCreateProjectModalOpen(false)} onCreate={handleFirstModalConfirm} />
       {/* Committee Memberships Modal */}
       {isCommitteeMembershipsModalOpen && (
-        <CommitteeMembershipsModal 
+        <CommitteeMembershipsModal
           darkMode={darkMode}
-          onClose={handleCommitteeMembershipsClose} 
-          onConfirm={handleCommitteeMembershipsConfirm} 
-          onPrevious={handleCommitteeMembershipsPrevious} 
+          onClose={handleCommitteeMembershipsClose}
+          onConfirm={handleCommitteeMembershipsConfirm}
+          onPrevious={handleCommitteeMembershipsPrevious}
         />
       )}
     </div>

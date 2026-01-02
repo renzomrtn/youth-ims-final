@@ -2,9 +2,6 @@ import { projectId, publicAnonKey } from './supabase/info';
 
 const BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-0521b783`;
 
-// Helper function to make authenticated requests
-import { supabase } from '../lib/supabase';
-
 async function fetchFromServer(
   endpoint: string,
   options: RequestInit = {},
@@ -12,20 +9,19 @@ async function fetchFromServer(
 ) {
   let headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Authorization': `Bearer ${publicAnonKey}`, // Always send anon key
     ...(options.headers as Record<string, string>),
   };
 
   if (requireAuth) {
+    // Send session token in a DIFFERENT header
     const sessionToken = localStorage.getItem('sessionToken');
 
-    if (!session) {
+    if (!sessionToken) {
       throw new Error('No active session');
     }
 
-    headers.Authorization = `Bearer ${session.access_token}`;
-  } else {
-    // Even for unauthenticated requests, we need to send the anon key
-    headers.Authorization = `Bearer ${publicAnonKey}`;
+    headers['X-Session-Token'] = sessionToken; // Custom header
   }
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -41,7 +37,6 @@ async function fetchFromServer(
   return response.json();
 }
 
-// Authentication API
 export const authAPI = {
   login: async (username: string, password: string) =>
     fetchFromServer(
@@ -55,17 +50,21 @@ export const authAPI = {
   logout: async (sessionToken: string) => fetchFromServer('/auth/logout', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${sessionToken}`,
+      'X-Session-Token': sessionToken, // Use custom header
     },
   }),
   verifySession: async (sessionToken: string) =>
-    fetchFromServer('/auth/verify', {
-      headers: {
-        'Authorization': `Bearer ${sessionToken}`,
+    fetchFromServer(
+      '/auth/verify', 
+      {
+        headers: {
+          'X-Session-Token': sessionToken, // Use custom header
+        },
       },
-    },
-    false
+      false
     ),
+  // ... rest stays the same
+
   getUsers: async () => fetchFromServer('/auth/users'),
   createUser: async (data: any) => fetchFromServer('/auth/users', {
     method: 'POST',
