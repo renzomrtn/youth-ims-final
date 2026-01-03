@@ -409,6 +409,121 @@ app.delete("/make-server-0521b783/projects/:id", async (c) => {
   }
 });
 
+// Get tasks for a project committee
+app.get("/make-server-0521b783/projects/:projectId/committees/:committeeId/tasks", async (c) => {
+  try {
+    const projectId = c.req.param("projectId");
+    const committeeId = c.req.param("committeeId");
+    const tasks = await kv.getByPrefix(`task:${projectId}:${committeeId}:`);
+    return c.json(tasks || []);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    return c.json({ error: "Failed to fetch tasks" }, 500);
+  }
+});
+
+// Create task
+app.post("/make-server-0521b783/projects/:projectId/committees/:committeeId/tasks", async (c) => {
+  try {
+    const projectId = c.req.param("projectId");
+    const committeeId = c.req.param("committeeId");
+    const data = await c.req.json();
+    const id = data.id || crypto.randomUUID();
+    const task = { ...data, id, projectId, committeeId, createdAt: new Date().toISOString() };
+    await kv.set(`task:${projectId}:${committeeId}:${id}`, task);
+    return c.json(task, 201);
+  } catch (error) {
+    console.error("Error creating task:", error);
+    return c.json({ error: "Failed to create task" }, 500);
+  }
+});
+
+// Update task
+app.put("/make-server-0521b783/projects/:projectId/committees/:committeeId/tasks/:id", async (c) => {
+  try {
+    const projectId = c.req.param("projectId");
+    const committeeId = c.req.param("committeeId");
+    const id = c.req.param("id");
+    const data = await c.req.json();
+    const existing = await kv.get(`task:${projectId}:${committeeId}:${id}`);
+    if (!existing) {
+      return c.json({ error: "Task not found" }, 404);
+    }
+    const updated = { ...existing, ...data, updatedAt: new Date().toISOString() };
+    await kv.set(`task:${projectId}:${committeeId}:${id}`, updated);
+    return c.json(updated);
+  } catch (error) {
+    console.error("Error updating task:", error);
+    return c.json({ error: "Failed to update task" }, 500);
+  }
+});
+
+// Delete task
+app.delete("/make-server-0521b783/projects/:projectId/committees/:committeeId/tasks/:id", async (c) => {
+  try {
+    const projectId = c.req.param("projectId");
+    const committeeId = c.req.param("committeeId");
+    const id = c.req.param("id");
+    await kv.del(`task:${projectId}:${committeeId}:${id}`);
+    return c.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    return c.json({ error: "Failed to delete task" }, 500);
+  }
+});
+
+// Calculate and update project progress
+app.post("/make-server-0521b783/projects/:projectId/update-progress", async (c) => {
+  try {
+    const projectId = c.req.param("projectId");
+    
+    // Get the project
+    const project = await kv.get(`project:${projectId}`);
+    if (!project) {
+      return c.json({ error: "Project not found" }, 404);
+    }
+    
+    // Get all tasks for all committees
+    const allTasks = await kv.getByPrefix(`task:${projectId}:`);
+    
+    if (allTasks.length === 0) {
+      // No tasks yet, set progress to 0
+      project.progress = 0;
+      project.status = "Pending";
+      await kv.set(`project:${projectId}`, project);
+      return c.json(project);
+    }
+    
+    // Calculate progress: (tasks in "done" / total tasks) * 100
+    const doneTasks = allTasks.filter((task: any) => task.columnId === "done");
+    const progress = Math.round((doneTasks.length / allTasks.length) * 100);
+    
+    // Update project
+    project.progress = progress;
+    
+    // Update status based on progress
+    if (progress === 100) {
+      project.status = "Completed";
+      project.accomplished = new Date().toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    } else if (progress > 0) {
+      project.status = "In Progress";
+    } else {
+      project.status = "Pending";
+    }
+    
+    await kv.set(`project:${projectId}`, project);
+    
+    return c.json(project);
+  } catch (error) {
+    console.error("Error updating project progress:", error);
+    return c.json({ error: "Failed to update progress" }, 500);
+  }
+});
+
 // ============================================
 // BUDGET ENDPOINTS
 // ============================================

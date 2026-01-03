@@ -15,8 +15,10 @@ interface ProjectsContentProps {
   viewMode: "federation" | "barangay";
   onSubPageChange: (subPage: string) => void;
   onOpenKanban: (data: {
+    projectId: string;
     projectTitle: string;
     committeeName: string;
+    committeeId: string;
     chairman: string;
     viceChairman: string;
   }) => void;
@@ -79,6 +81,23 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     projectTitle: string;
   } | null>(null);
   const [projects, setProjects] = useState<Project[]>([  ]);
+
+  const refreshProjects = async () => {
+    try {
+      const data = await projectsAPI.getAll();
+      if (data && Array.isArray(data)) {
+        setProjects(data);
+      }
+    } catch (error) {
+      console.error("Error refreshing projects:", error);
+    }
+  };
+
+  const handleCloseKanban = async () => {
+    setKanbanData(null);
+    setCurrentSubPage(undefined);
+    // Trigger a project refresh - you'll need to pass this function down
+  };
 
   useEffect(() => {
   const loadProjects = async () => {
@@ -523,8 +542,10 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                               <button
                               key={idx}
                               onClick={() => onOpenKanban({
+                                projectId: project.id.toString(),
                                 projectTitle: project.title,
                                 committeeName: committee.name,
+                                committeeId: idx.toString(),
                                 chairman: committee.chairman.name,
                                 viceChairman: committee.viceChairman.name,
                               })}

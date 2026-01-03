@@ -34,8 +34,10 @@ function AppContent() {
 
   // Kanban state
   const [kanbanData, setKanbanData] = useState<{
+    projectId: string;
     projectTitle: string;
     committeeName: string;
+    committeeId: string;
     chairman: string;
     viceChairman: string;
   } | null>(null);
@@ -44,8 +46,10 @@ function AppContent() {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   const handleOpenKanban = (data: {
+    projectId: string;  // ← Add this
     projectTitle: string;
     committeeName: string;
+    committeeId: string;  // ← Add this
     chairman: string;
     viceChairman: string;
   }) => {
@@ -92,8 +96,10 @@ function AppContent() {
             {kanbanData && currentSubPage === "kanban" ? (
               <KanbanBoard
                 darkMode={darkMode}
+                projectId={kanbanData.projectId}
                 projectTitle={kanbanData.projectTitle}
                 committeeName={kanbanData.committeeName}
+                committeeId={kanbanData.committeeId}
                 chairman={kanbanData.chairman}
                 viceChairman={kanbanData.viceChairman}
                 onBack={handleCloseKanban}

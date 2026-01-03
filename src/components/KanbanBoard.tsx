@@ -1,13 +1,17 @@
+import { tasksAPI } from "../utils/database";
 import { useState } from "react";
 import { ArrowLeft, Plus, GripVertical } from "lucide-react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { AddTaskModal } from "./AddTaskModal";
+import { useEffect } from "react";
 
 interface KanbanBoardProps {
   darkMode: boolean;
+  projectId: string;
   projectTitle: string;
   committeeName: string;
+  committeeId: string;
   chairman: string;
   viceChairman: string;
   onBack: () => void;
@@ -35,16 +39,16 @@ interface DragItem {
   index: number;
 }
 
-function TaskCard({ 
-  task, 
-  columnId, 
-  index, 
-  moveTask, 
-  darkMode 
-}: { 
-  task: Task; 
-  columnId: string; 
-  index: number; 
+function TaskCard({
+  task,
+  columnId,
+  index,
+  moveTask,
+  darkMode
+}: {
+  task: Task;
+  columnId: string;
+  index: number;
   moveTask: (taskId: number, fromColumn: string, toColumn: string, toIndex: number) => void;
   darkMode: boolean;
 }) {
@@ -86,13 +90,12 @@ function TaskCard({
   return (
     <div
       ref={(node) => preview(drop(node))}
-      className={`bg-white dark:bg-gray-700 rounded-lg p-4 border-2 transition-all ${
-        isDragging 
-          ? "opacity-50 border-blue-400 dark:border-blue-500" 
+      className={`bg-white dark:bg-gray-700 rounded-lg p-4 border-2 transition-all ${isDragging
+          ? "opacity-50 border-blue-400 dark:border-blue-500"
           : isOver
-          ? "border-blue-300 dark:border-blue-600"
-          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-      } ${isDragging ? "" : "hover:shadow-lg cursor-move"}`}
+            ? "border-blue-300 dark:border-blue-600"
+            : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+        } ${isDragging ? "" : "hover:shadow-lg cursor-move"}`}
     >
       <div className="flex items-start gap-2">
         <div ref={drag} className="cursor-grab active:cursor-grabbing pt-1">
@@ -121,13 +124,13 @@ function TaskCard({
   );
 }
 
-function KanbanColumn({ 
-  column, 
-  moveTask, 
-  onAddTask, 
-  darkMode 
-}: { 
-  column: Column; 
+function KanbanColumn({
+  column,
+  moveTask,
+  onAddTask,
+  darkMode
+}: {
+  column: Column;
   moveTask: (taskId: number, fromColumn: string, toColumn: string, toIndex: number) => void;
   onAddTask?: () => void;
   darkMode: boolean;
@@ -147,9 +150,8 @@ function KanbanColumn({
   return (
     <div
       ref={drop}
-      className={`flex flex-col w-80 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 transition-all shrink-0 ${
-        isOver ? "border-blue-400 dark:border-blue-500 bg-blue-50/50 dark:bg-blue-900/20" : "border-gray-200 dark:border-gray-700"
-      }`}
+      className={`flex flex-col w-80 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 transition-all shrink-0 ${isOver ? "border-blue-400 dark:border-blue-500 bg-blue-50/50 dark:bg-blue-900/20" : "border-gray-200 dark:border-gray-700"
+        }`}
     >
       {/* Column Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -185,7 +187,7 @@ function KanbanColumn({
             darkMode={darkMode}
           />
         ))}
-        
+
         {/* Empty State */}
         {column.tasks.length === 0 && column.id !== "todo" && (
           <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
@@ -199,157 +201,133 @@ function KanbanColumn({
 
 export function KanbanBoard({
   darkMode,
+  projectId,
   projectTitle,
   committeeName,
+  committeeId,
   chairman,
   viceChairman,
   onBack,
 }: KanbanBoardProps) {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+
+  // ← Initialize columns state FIRST with empty columns
   const [columns, setColumns] = useState<Column[]>([
-    {
-      id: "todo",
-      title: "To Do",
-      tasks: [],
-    },
-    {
-      id: "inprogress",
-      title: "In Progress",
-      tasks: [
-        {
-          id: 1,
-          title: "Design promotional materials",
-          assignee: "Alice Brown",
-          dueDate: "Dec 16, 2024",
-          priority: "High",
-        },
-        {
-          id: 2,
-          title: "Contact speakers",
-          assignee: "Bob Wilson",
-          dueDate: "Dec 16, 2024",
-          priority: "Low",
-        },
-      ],
-    },
-    {
-      id: "review",
-      title: "Review",
-      tasks: [
-        {
-          id: 3,
-          title: "Review event timeline",
-          assignee: "Charlie Davis",
-          dueDate: "Dec 5, 2024",
-          priority: "Medium",
-        },
-      ],
-    },
-    {
-      id: "done",
-      title: "Done",
-      tasks: [
-        {
-          id: 4,
-          title: "Finalize committee structure",
-          assignee: "John Smith",
-          dueDate: "Nov 28, 2024",
-          priority: "High",
-        },
-        {
-          id: 5,
-          title: "Create attendance sheet",
-          assignee: "Jane Doe",
-          dueDate: "Nov 30, 2024",
-          priority: "Low",
-        },
-        {
-          id: 6,
-          title: "Book conference room",
-          assignee: "Alice Brown",
-          dueDate: "Nov 22, 2024",
-          priority: "Medium",
-        },
-        {
-          id: 7,
-          title: "Send invitations",
-          assignee: "Bob Wilson",
-          dueDate: "Nov 30, 2024",
-          priority: "High",
-        },
-        {
-          id: 8,
-          title: "Order catering",
-          assignee: "Charlie Davis",
-          dueDate: "Nov 22, 2024",
-          priority: "Medium",
-        },
-      ],
-    },
+    { id: "todo", title: "To Do", tasks: [] },
+    { id: "inprogress", title: "In Progress", tasks: [] },
+    { id: "review", title: "Review", tasks: [] },
+    { id: "done", title: "Done", tasks: [] },
   ]);
 
-  const moveTask = (taskId: number, fromColumnId: string, toColumnId: string, toIndex: number) => {
+  // Load tasks from database on mount
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        const tasks = await tasksAPI.getByProject(projectId, committeeId);
+        // Organize tasks by column
+        const organized: Column[] = [
+          { id: "todo", title: "To Do", tasks: [] },
+          { id: "inprogress", title: "In Progress", tasks: [] },
+          { id: "review", title: "Review", tasks: [] },
+          { id: "done", title: "Done", tasks: [] },
+        ];
+
+        tasks.forEach((task: any) => {
+          const column = organized.find(col => col.id === task.columnId);
+          if (column) {
+            column.tasks.push(task);
+          }
+        });
+
+        setColumns(organized);
+      } catch (error) {
+        console.error("Error loading tasks:", error);
+      }
+    };
+
+    loadTasks();
+  }, [projectId, committeeId]);
+
+  // Update moveTask
+  const moveTask = async (taskId: number, fromColumnId: string, toColumnId: string, toIndex: number) => {
     setColumns((prevColumns) => {
       const newColumns = [...prevColumns];
-      
-      // Find source and destination columns
+
       const fromColumn = newColumns.find(col => col.id === fromColumnId);
       const toColumn = newColumns.find(col => col.id === toColumnId);
-      
+
       if (!fromColumn || !toColumn) return prevColumns;
-      
-      // Find the task in the source column
+
       const taskIndex = fromColumn.tasks.findIndex(t => t.id === taskId);
       if (taskIndex === -1) return prevColumns;
-      
+
       const [task] = fromColumn.tasks.splice(taskIndex, 1);
-      
-      // Add to destination column at the specified index
       toColumn.tasks.splice(toIndex, 0, task);
-      
+
+      // Save to database
+      tasksAPI.update(projectId, committeeId, task.id.toString(), {
+        ...task,
+        columnId: toColumnId
+      })
+        .then(() => projectsAPI.updateProgress(projectId)) // ← Add this
+        .then(() => {
+          console.log('Project progress updated!');
+        })
+        .catch(err => console.error("Error saving task move:", err));
+
       return newColumns;
     });
   };
 
-  const handleAddTask = (taskData: {
+  // Update handleAddTask
+  const handleAddTask = async (taskData: {
     title: string;
     assignees: string[];
     dueDate: string;
     priority: "High" | "Medium" | "Low";
   }) => {
-    // Find the highest task ID
     const allTasks = columns.flatMap(col => col.tasks);
     const maxId = allTasks.length > 0 ? Math.max(...allTasks.map(t => t.id)) : 0;
 
-    // Format the date
     const date = new Date(taskData.dueDate);
-    const formattedDate = date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric' 
+    const formattedDate = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     });
 
-    // Create new task with the first assignee (or join multiple assignees)
     const newTask: Task = {
       id: maxId + 1,
       title: taskData.title,
-      assignee: taskData.assignees.length > 1 
+      assignee: taskData.assignees.length > 1
         ? taskData.assignees.join(", ")
         : taskData.assignees[0],
       dueDate: formattedDate,
-      priority: taskData.priority
+      priority: taskData.priority,
+      columnId: "todo",
     };
 
-    // Add to To Do column
-    setColumns(prevColumns =>
-      prevColumns.map(col =>
-        col.id === "todo"
-          ? { ...col, tasks: [...col.tasks, newTask] }
-          : col
-      )
-    );
+    try {
+      // Save to database
+      await tasksAPI.create(projectId, committeeId, newTask);
 
-    setShowAddTaskModal(false);
+      // Update project progress
+      await projectsAPI.updateProgress(projectId); // ← Add this
+
+      // Update local state
+      setColumns(prevColumns =>
+        prevColumns.map(col =>
+          col.id === "todo"
+            ? { ...col, tasks: [...col.tasks, newTask] }
+            : col
+        )
+      );
+
+      setShowAddTaskModal(false);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      alert("Failed to create task");
+    }
   };
 
   // Task progress calculation

@@ -97,6 +97,29 @@ export const projectsAPI = {
   delete: async (id: string) => fetchFromServer(`/projects/${id}`, {
     method: 'DELETE',
   }),
+  updateProgress: async (projectId: string) => fetchFromServer(`/projects/${projectId}/update-progress`, {
+    method: 'POST',
+  }),
+};
+
+// Tasks API
+export const tasksAPI = {
+  getByProject: async (projectId: string, committeeId: string) => 
+    fetchFromServer(`/projects/${projectId}/committees/${committeeId}/tasks`),
+  create: async (projectId: string, committeeId: string, data: any) => 
+    fetchFromServer(`/projects/${projectId}/committees/${committeeId}/tasks`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: async (projectId: string, committeeId: string, taskId: string, data: any) => 
+    fetchFromServer(`/projects/${projectId}/committees/${committeeId}/tasks/${taskId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  delete: async (projectId: string, committeeId: string, taskId: string) => 
+    fetchFromServer(`/projects/${projectId}/committees/${committeeId}/tasks/${taskId}`, {
+      method: 'DELETE',
+    }),
 };
 
 // Budget Preparation API
