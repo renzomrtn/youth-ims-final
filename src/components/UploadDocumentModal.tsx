@@ -17,8 +17,6 @@ export function UploadDocumentModal({
   category,
   onUploadSuccess 
 }: UploadDocumentModalProps) {
-  const [recordId, setRecordId] = useState("");
-  const [documentNumber, setDocumentNumber] = useState("");
   const [title, setTitle] = useState("");
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]); // YYYY-MM-DD
   const [authors, setAuthors] = useState<string[]>([""]);
@@ -73,7 +71,22 @@ export function UploadDocumentModal({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      
+      // Validate file type
+      if (file.type !== 'application/pdf') {
+        setError('Only PDF files are allowed');
+        return;
+      }
+      
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError('File size must be less than 10MB');
+        return;
+      }
+      
+      setError('');
+      setSelectedFile(file);
     }
   };
 
@@ -88,16 +101,14 @@ export function UploadDocumentModal({
     return ext || 'FILE';
   };
 
+  const generateRecordId = (category: string, year: string, number: number): string => {
+    const prefix = category === 'resolutions' ? 'RES' : 
+                   category === 'ordinances' ? 'ORD' : 'MIN';
+    return `${prefix}-${year}-${String(number).padStart(3, '0')}`;
+  };
+
   const handleConfirm = async () => {
     // Validate inputs
-    if (!recordId.trim()) {
-      setError("Record ID is required");
-      return;
-    }
-    if (!documentNumber.trim()) {
-      setError("Document number is required");
-      return;
-    }
     if (!title.trim()) {
       setError("Title is required");
       return;
@@ -124,31 +135,64 @@ export function UploadDocumentModal({
     try {
       const currentUser = getCurrentUser();
       const uploadDate = new Date().toISOString().split('T')[0];
+      const year = date.split('-')[0];
+      
+      // Get existing documents to determine next number
+      const existingDocs = await archivesAPI.getDocuments(category);
+      const docsInYear = existingDocs.filter((doc: any) => {
+        const docYear = doc.year || (doc.date ? doc.date.split('-')[0] : '');
+        return docYear === year;
+      });
+      const nextNumber = docsInYear.length + 1;
+      
+      // Generate record ID
+      const recordId = generateRecordId(category, year, nextNumber);
+      
+      // Convert file to base64 for storage
+      const fileBase64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result as string;
+          const base64Data = base64.split(',')[1]; // Remove data:mime;base64, prefix
+          console.log('File converted to base64, size:', base64Data.length, 'characters');
+          resolve(base64Data);
+        };
+        reader.onerror = (error) => {
+          console.error('FileReader error:', error);
+          reject(error);
+        };
+        reader.readAsDataURL(selectedFile);
+      });
       
       // Create document object
       const document = {
         category,
-        recordId: recordId.trim(),
-        number: parseInt(documentNumber),
+        recordId,
+        number: nextNumber,
         title: title.trim(),
-        author: validAuthors.join(', '), // Join multiple authors
-        date, // YYYY-MM-DD format
-        year: date.split('-')[0], // Extract year
+        author: validAuthors.join(', '),
+        date,
+        year,
         uploadedDate: uploadDate,
         lastEditedBy: currentUser,
         fileType: getFileType(selectedFile.name),
         fileSize: formatFileSize(selectedFile.size),
         fileName: selectedFile.name,
-        // Note: Actual file storage would require file upload to storage service
-        // For now, we're just storing metadata
+        fileData: fileBase64, // Store base64 encoded file
+        fileMimeType: selectedFile.type,
       };
+
+      console.log('Saving document:', {
+        ...document,
+        fileData: `${fileBase64.substring(0, 50)}... (${fileBase64.length} chars total)`
+      });
 
       // Save to database
       await archivesAPI.createDocument(document);
+      
+      console.log('Document saved successfully!');
 
       // Reset form
-      setRecordId("");
-      setDocumentNumber("");
       setTitle("");
       setDate(new Date().toISOString().split('T')[0]);
       setAuthors([""]);
@@ -170,8 +214,6 @@ export function UploadDocumentModal({
 
   const handleCancel = () => {
     // Reset and close
-    setRecordId("");
-    setDocumentNumber("");
     setTitle("");
     setDate(new Date().toISOString().split('T')[0]);
     setAuthors([""]);
@@ -205,36 +247,6 @@ export function UploadDocumentModal({
               <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
             </div>
           )}
-
-          {/* Record ID Field */}
-          <div className="mb-6">
-            <label className="block text-base text-black dark:text-white mb-2">
-              Record ID <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={recordId}
-              onChange={(e) => setRecordId(e.target.value)}
-              placeholder="e.g., RES-2024-001"
-              className="w-full h-[38px] px-4 border border-[#939393] rounded-[5px] text-[#515151] dark:text-gray-200 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:border-[#174499]"
-              disabled={uploading}
-            />
-          </div>
-
-          {/* Document Number Field */}
-          <div className="mb-6">
-            <label className="block text-base text-black dark:text-white mb-2">
-              Document Number <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={documentNumber}
-              onChange={(e) => setDocumentNumber(e.target.value)}
-              placeholder="e.g., 1"
-              className="w-full h-[38px] px-4 border border-[#939393] rounded-[5px] text-[#515151] dark:text-gray-200 dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:border-[#174499]"
-              disabled={uploading}
-            />
-          </div>
 
           {/* Title Field */}
           <div className="mb-6">
@@ -318,13 +330,13 @@ export function UploadDocumentModal({
             <label className="flex items-center justify-center gap-2 w-full h-[38px] bg-[#dedede] dark:bg-gray-600 border border-[#939393] dark:border-gray-500 rounded-[5px] cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors">
               <Upload className="w-5 h-5 text-[#6d798e] dark:text-gray-300" />
               <span className="text-[#515151] dark:text-gray-200 truncate max-w-[600px]">
-                {selectedFile ? selectedFile.name : "Upload File"}
+                {selectedFile ? selectedFile.name : "Upload PDF File"}
               </span>
               <input
                 type="file"
                 onChange={handleFileChange}
                 className="hidden"
-                accept=".pdf,.doc,.docx"
+                accept=".pdf"
                 disabled={uploading}
               />
             </label>
@@ -333,6 +345,9 @@ export function UploadDocumentModal({
                 Size: {formatFileSize(selectedFile.size)}
               </p>
             )}
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Only PDF files are supported
+            </p>
           </div>
 
           {/* Action Buttons */}

@@ -9,20 +9,20 @@ async function fetchFromServer(
 ) {
   let headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${publicAnonKey}`, // Always send anon key
+    'Authorization': `Bearer ${publicAnonKey}`,
     ...(options.headers as Record<string, string>),
   };
 
   if (requireAuth) {
-    // Send session token in a DIFFERENT header
     const sessionToken = localStorage.getItem('sessionToken');
-
     if (!sessionToken) {
       throw new Error('No active session');
     }
-
-    headers['X-Session-Token'] = sessionToken; // Custom header
+    headers['X-Session-Token'] = sessionToken;
   }
+
+  console.log('Fetching:', `${BASE_URL}${endpoint}`); // Debug
+  console.log('Headers:', headers); // Debug
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
@@ -52,11 +52,14 @@ export const authAPI = {
     headers: {
       'X-Session-Token': sessionToken, // Use custom header
     },
-  }),
+  },
+    false
+  ),
   verifySession: async (sessionToken: string) =>
     fetchFromServer(
-      '/auth/verify', 
+      '/auth/verify',
       {
+        method: 'GET',
         headers: {
           'X-Session-Token': sessionToken, // Use custom header
         },

@@ -23,20 +23,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Load session from localStorage on mount and verify it
   useEffect(() => {
     const storedToken = localStorage.getItem("sessionToken");
+    console.log('Checking stored token:', storedToken); // Debug
+
     if (storedToken) {
-      // Verify the session token with the server
+      console.log('Attempting to verify session...'); // Debug
+
       authAPI.verifySession(storedToken)
         .then((response) => {
+          console.log('Verification successful:', response); // Debug
           setUser(response.user);
           setSessionToken(storedToken);
         })
         .catch((error) => {
           console.error("Session verification failed:", error);
-          // Clear invalid session
           localStorage.removeItem("sessionToken");
           setSessionToken(null);
           setUser(null);
         });
+    } else {
+      console.log('No stored token found'); // Debug
     }
   }, []);
 
@@ -46,14 +51,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       console.log('Login response:', response); // ← Add this
 
-      
+
       if (response.user && response.sessionToken) {
         const loggedInUser: User = {
           username: response.user.username,
           role: response.user.role,
           fullName: response.user.fullName
         };
-        
+
         setUser(loggedInUser);
         setSessionToken(response.sessionToken);
         localStorage.setItem("sessionToken", response.sessionToken);
@@ -62,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error("Login error:", error);

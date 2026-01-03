@@ -21,6 +21,8 @@ interface Resolution {
   fileType: string;
   fileSize: string;
   year: string;
+  fileData?: string;
+  fileMimeType?: string;
 }
 
 export function ArchivesResolutionsContent({ 
@@ -39,6 +41,50 @@ export function ArchivesResolutionsContent({
   // Default years - always show these even if no documents exist
   const defaultYears = ["2026", "2025", "2024", "2023", "2022"];
   const [availableYears, setAvailableYears] = useState<string[]>(defaultYears);
+
+  const handleViewDocument = (resolution: Resolution) => {
+    console.log('Attempting to view document:', resolution);
+    
+    if (!resolution.fileData) {
+      alert('This document does not have an attached file. It may have been uploaded before file storage was implemented.');
+      return;
+    }
+    
+    if (!resolution.fileMimeType) {
+      alert('File type information is missing.');
+      return;
+    }
+
+    try {
+      // Remove any whitespace from base64 string
+      const base64Data = resolution.fileData.trim();
+      
+      // Decode base64 to binary
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: resolution.fileMimeType });
+      
+      console.log('Blob created:', blob.size, 'bytes, type:', blob.type);
+      
+      // Create URL and open in new tab
+      const url = URL.createObjectURL(blob);
+      const newWindow = window.open(url, '_blank');
+      
+      if (!newWindow) {
+        alert('Pop-up blocked. Please allow pop-ups for this site to view documents.');
+      }
+      
+      // Clean up after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (error) {
+      console.error('Error viewing document:', error);
+      alert('Failed to open document. The file may be corrupted or in an invalid format.');
+    }
+  };
 
   useEffect(() => {
     fetchResolutions();
@@ -226,7 +272,11 @@ export function ArchivesResolutionsContent({
                     </td>
                     <td className="px-6 py-6">
                       <div className="flex items-center gap-2">
-                        <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors">
+                        <button 
+                          onClick={() => handleViewDocument(resolution)}
+                          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors"
+                          title="View Document"
+                        >
                           <Eye className="w-4 h-4 text-[#6d798e] dark:text-gray-400" />
                         </button>
                         <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-colors">
