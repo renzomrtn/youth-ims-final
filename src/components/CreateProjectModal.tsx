@@ -9,19 +9,21 @@ interface CreateProjectModalProps {
     proponent: string;
     lineItemId: string;
     projectTitle: string;
+    dueDate: string;
   }) => void;
   darkMode?: boolean;
 }
 
 // Mock data for dropdowns
 const mockOfficials = [
-  "Melody Marks",
   "John Smith",
   "Jane Doe",
   "Alice Johnson",
   "Bob Williams",
   "Mike Brown",
-  "Sarah Davis"
+  "Sarah Davis",
+  "Melody Marks",
+  "Val Steele"
 ];
 
 const mockLineItems = [
@@ -39,11 +41,12 @@ export function CreateProjectModal({ isOpen, onClose, onCreate, darkMode }: Crea
   const [isOfficialDropdownOpen, setIsOfficialDropdownOpen] = useState(false);
   const [isLineItemDropdownOpen, setIsLineItemDropdownOpen] = useState(false);
   const [lineItemSearch, setLineItemSearch] = useState("");
+  const [dueDate, setDueDate] = useState("");
 
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    if (!selectedOfficial || !selectedLineItem || !projectTitle.trim()) {
+    if (!selectedOfficial || !selectedLineItem || !projectTitle.trim() || !dueDate) {
       alert("Please fill in all fields");
       return;
     }
@@ -51,10 +54,9 @@ export function CreateProjectModal({ isOpen, onClose, onCreate, darkMode }: Crea
     onCreate({
       proponent: selectedOfficial,
       lineItemId: selectedLineItem,
-      projectTitle: projectTitle.trim()
+      projectTitle: projectTitle.trim(),
+      dueDate
     });
-
-    // Don't reset form or close modal - let parent handle it
   };
 
   const handleCancel = () => {
@@ -63,6 +65,7 @@ export function CreateProjectModal({ isOpen, onClose, onCreate, darkMode }: Crea
     setSelectedLineItem("");
     setProjectTitle("");
     setLineItemSearch("");
+    setDueDate("");
     onClose();
   };
 
@@ -225,6 +228,20 @@ export function CreateProjectModal({ isOpen, onClose, onCreate, darkMode }: Crea
               onChange={(e) => setProjectTitle(e.target.value)}
               className="w-full h-[38px] rounded-[5px] border border-[#939393] px-[16px] font-['Source_Sans_3:Regular',sans-serif] font-normal text-[16px] text-black outline-none hover:border-[#174499] focus:border-[#174499] transition-colors"
               placeholder="Enter project title..."
+            />
+          </div>
+
+          {/* Due Date */}
+          <div className="mb-[38px]">
+            <p className="font-['Source_Sans_3:Regular',sans-serif] font-normal leading-[normal] text-[16px] text-black text-nowrap mb-[8px]">
+              Due Date:
+            </p>
+            <input
+              type="date"
+              min={new Date().toISOString().split("T")[0]}
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="w-full h-[38px] rounded-[5px] border border-[#939393] px-[16px] font-['Source_Sans_3:Regular',sans-serif] font-normal text-[16px] text-black outline-none hover:border-[#174499] focus:border-[#174499] transition-colors"
             />
           </div>
 

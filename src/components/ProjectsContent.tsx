@@ -25,6 +25,7 @@ interface ProjectsContentProps {
 }
 
 interface Committee {
+  id: string;
   name: string;
   chairman: {
     name: string;
@@ -79,8 +80,9 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     proponent: string;
     lineItemId: string;
     projectTitle: string;
+    dueDate: string;
   } | null>(null);
-  const [projects, setProjects] = useState<Project[]>([  ]);
+  const [projects, setProjects] = useState<Project[]>([]);
 
   const refreshProjects = async () => {
     try {
@@ -100,24 +102,24 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
   };
 
   useEffect(() => {
-  const loadProjects = async () => {
-    try {
-      const data = await projectsAPI.getAll();
-      console.log('Loaded projects:', data); // ← Add this to debug
-      if (data && Array.isArray(data)) {
-        setProjects(data);
-      } else {
-        console.error('Invalid projects data:', data);
-        setProjects([]); // Fallback to empty array
+    const loadProjects = async () => {
+      try {
+        const data = await projectsAPI.getAll();
+        console.log('Loaded projects:', data); // ← Add this to debug
+        if (data && Array.isArray(data)) {
+          setProjects(data);
+        } else {
+          console.error('Invalid projects data:', data);
+          setProjects([]); // Fallback to empty array
+        }
+      } catch (error) {
+        console.error("Error loading projects:", error);
+        setProjects([]); // Fallback to empty array on error
       }
-    } catch (error) {
-      console.error("Error loading projects:", error);
-      setProjects([]); // Fallback to empty array on error
-    }
-  };
-  
-  loadProjects();
-}, []);
+    };
+
+    loadProjects();
+  }, []);
 
   // Mock projects data - reference to state
   const mockProjects = projects;
@@ -127,6 +129,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     proponent: string;
     lineItemId: string;
     projectTitle: string;
+    dueDate: string;
   }) => {
     setPendingProjectData(data);
     setIsCreateProjectModalOpen(false);
@@ -176,6 +179,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
 
     // Transform committees to match project structure
     const formattedCommittees: Committee[] = committees.map((committee, idx) => ({
+      id: committee.id, // ← Use the ID from the modal
       name: committee.name,
       chairman: {
         name: committee.chairman,
@@ -195,7 +199,6 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     }));
 
     const newProject: Project = {
-      id: projects.length + 1,
       proponent: pendingProjectData.proponent,
       title: pendingProjectData.projectTitle,
       lineItemId: pendingProjectData.lineItemId,
@@ -203,7 +206,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
       budget: "₱0.00",
       spent: "₱0.00",
       startDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      dueDate: "",
+      dueDate: pendingProjectData.dueDate,
       accomplished: "",
       progress: 0,
       status: "Pending",
@@ -213,7 +216,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
 
     try {
       // ✨ Save to database!
-      await projectsAPI.create(newProject);
+    const createdProject = await projectsAPI.create(newProject);
 
       // Then update local state
       setProjects([...projects, newProject]);
@@ -539,12 +542,13 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                       <td colSpan={9} className="px-6 py-6">
                         <div className="grid grid-cols-4 gap-4">
                           {project.committees?.map((committee, idx) => (
-                              <button
-                              key={idx}
+                            <button
+                              key={committee.id || `committee-${project.id}-${idx}`} // ← Use committee.id
                               onClick={() => onOpenKanban({
                                 projectId: project.id.toString(),
                                 projectTitle: project.title,
                                 committeeName: committee.name,
+                                committeeId: committee.id || idx.toString(), // ← Use committee.id
                                 committeeId: idx.toString(),
                                 chairman: committee.chairman.name,
                                 viceChairman: committee.viceChairman.name,
@@ -587,7 +591,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                               <div className="mb-2 text-sm text-[#364153] dark:text-gray-200">Members:</div>
                               <div className="space-y-2">
                                 {committee.members.map((member, mIdx) => (
-                                  <div key={mIdx} className="flex items-center gap-2">
+                                  <div key={`${committee.id}-member-${mIdx}`} className="flex items-center gap-2">
                                     <div
                                       className="w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0"
                                       style={{ backgroundImage: member.gradient }}

@@ -43,7 +43,7 @@ export function ArchivesResolutionsContent({
   const [availableYears, setAvailableYears] = useState<string[]>(defaultYears);
 
   const handleViewDocument = (resolution: Resolution) => {
-    console.log('Attempting to view document:', resolution);
+    // console.log('Attempting to view document:', resolution);
     
     if (!resolution.fileData) {
       alert('This document does not have an attached file. It may have been uploaded before file storage was implemented.');
@@ -68,7 +68,7 @@ export function ArchivesResolutionsContent({
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: resolution.fileMimeType });
       
-      console.log('Blob created:', blob.size, 'bytes, type:', blob.type);
+      // console.log('Blob created:', blob.size, 'bytes, type:', blob.type);
       
       // Create URL and open in new tab
       const url = URL.createObjectURL(blob);

@@ -113,7 +113,7 @@ app.post("/make-server-0521b783/auth/login", async (c) => {
   try {
     const { username, password } = await c.req.json();
     
-    console.log(`Login attempt for username: ${username}`);
+    // console.log(`Login attempt for username: ${username}`);
     
     if (!username || !password) {
       return c.json({ error: "Username and password are required" }, 400);
@@ -123,21 +123,21 @@ app.post("/make-server-0521b783/auth/login", async (c) => {
     const user = await kv.get(`user:${username}`);
     
     if (!user) {
-      console.log(`User not found in database: ${username}`);
+      // console.log(`User not found in database: ${username}`);
       return c.json({ error: "Invalid username or password" }, 401);
     }
 
-    console.log(`User found: ${username}, verifying password...`);
+    // console.log(`User found: ${username}, verifying password...`);
 
     // Verify password
     const isValidPassword = await verifyPassword(password, user.passwordHash);
     
     if (!isValidPassword) {
-      console.log(`Password verification failed for user: ${username}`);
+      // console.log(`Password verification failed for user: ${username}`);
       return c.json({ error: "Invalid username or password" }, 401);
     }
 
-    console.log(`Password verified successfully for user: ${username}`);
+    // console.log(`Password verified successfully for user: ${username}`);
 
     // Generate session token
     const sessionToken = generateSessionToken();
@@ -151,7 +151,7 @@ app.post("/make-server-0521b783/auth/login", async (c) => {
     // Store session
     await kv.set(`session:${sessionToken}`, session);
 
-    console.log(`Login successful for user: ${username}`);
+    // console.log(`Login successful for user: ${username}`);
 
     // Return user data without password
     return c.json({
@@ -369,7 +369,7 @@ app.get("/make-server-0521b783/projects/:id", async (c) => {
 app.post("/make-server-0521b783/projects", async (c) => {
   try {
     const data = await c.req.json();
-    const id = data.id || crypto.randomUUID();
+    const id = crypto.randomUUID(); // ← Always generate new UUID, ignore any ID from client
     const project = { ...data, id, createdAt: new Date().toISOString() };
     await kv.set(`project:${id}`, project);
     return c.json(project, 201);

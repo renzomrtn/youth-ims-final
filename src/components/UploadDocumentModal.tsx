@@ -154,7 +154,7 @@ export function UploadDocumentModal({
         reader.onload = () => {
           const base64 = reader.result as string;
           const base64Data = base64.split(',')[1]; // Remove data:mime;base64, prefix
-          console.log('File converted to base64, size:', base64Data.length, 'characters');
+          // console.log('File converted to base64, size:', base64Data.length, 'characters');
           resolve(base64Data);
         };
         reader.onerror = (error) => {
@@ -190,7 +190,7 @@ export function UploadDocumentModal({
       // Save to database
       await archivesAPI.createDocument(document);
       
-      console.log('Document saved successfully!');
+      // console.log('Document saved successfully!');
 
       // Reset form
       setTitle("");

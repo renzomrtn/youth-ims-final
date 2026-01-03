@@ -21,8 +21,8 @@ async function fetchFromServer(
     headers['X-Session-Token'] = sessionToken;
   }
 
-  console.log('Fetching:', `${BASE_URL}${endpoint}`); // Debug
-  console.log('Headers:', headers); // Debug
+  // console.log('Fetching:', `${BASE_URL}${endpoint}`); // Debug
+  // console.log('Headers:', headers); // Debug
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,

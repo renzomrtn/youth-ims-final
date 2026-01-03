@@ -43,7 +43,7 @@ export function ArchivesMinutesContent({
   const [availableYears, setAvailableYears] = useState<string[]>(defaultYears);
 
   const handleViewDocument = (minute: Minute) => {
-    console.log('Attempting to view document:', minute);
+    // console.log('Attempting to view document:', minute);
     
     if (!minute.fileData) {
       alert('This document does not have an attached file. It may have been uploaded before file storage was implemented.');
@@ -68,7 +68,7 @@ export function ArchivesMinutesContent({
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: minute.fileMimeType });
       
-      console.log('Blob created:', blob.size, 'bytes, type:', blob.type);
+      // console.log('Blob created:', blob.size, 'bytes, type:', blob.type);
       
       // Create URL and open in new tab
       const url = URL.createObjectURL(blob);
