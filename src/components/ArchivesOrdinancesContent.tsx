@@ -31,7 +31,7 @@ export function ArchivesOrdinancesContent({
   onBack,
   onSubPageChange 
 }: ArchivesOrdinancesContentProps) {
-  const [selectedYear, setSelectedYear] = useState("2024");
+  const [selectedYear, setSelectedYear] = useState("2026");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);

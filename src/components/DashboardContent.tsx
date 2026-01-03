@@ -141,7 +141,6 @@ export function DashboardContent({ darkMode, viewMode }: DashboardContentProps) 
 
   return (
     <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900">
-      <DatabaseInit />
       <div className="p-8 space-y-10">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-7">
