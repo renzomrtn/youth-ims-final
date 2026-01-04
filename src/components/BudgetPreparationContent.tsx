@@ -268,10 +268,13 @@ const totalAnnualBudget = funds
 
       {/* New Line Item Modal */}
       <NewLineItemModal
-        isOpen={isNewLineItemModalOpen}
-        onClose={() => setIsNewLineItemModalOpen(false)}
-        onConfirm={handleNewLineItemConfirm}
-      />
+          isOpen={isNewLineItemModalOpen}
+          onClose={() => setIsNewLineItemModalOpen(false)}
+          onConfirm={handleNewLineItemConfirm}
+          totalAnnualBudget={totalAnnualBudget}
+          totalSupplementalBudget={totalSupplementalBudget}
+          totalCommitted={totalCommitted}
+        />
 
       {/* Fund Augmentation Modal */}
       <FundAugmentationModal
@@ -329,7 +332,7 @@ const totalAnnualBudget = funds
                 }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-[#155dfc]">Total Annual Budget For 2025</p>
+                  <p className="text-[#155dfc]">Total Annual Budget For 2026</p>
                   <button 
                     onClick={() => {
                       setBudgetType("annual");
@@ -591,8 +594,7 @@ const totalAnnualBudget = funds
                             )}
                             {item.status === "Pending" && (
                               <>
-                                <span className="w-2 h-2 rounded-full bg-gray-400 mr-2">
-                                  </span>
+                                <span className="w-2 h-2 rounded-full bg-gray-400 mr-2"></span>
                             {item.status}
                           </>
                         )}

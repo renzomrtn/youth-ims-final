@@ -14,12 +14,12 @@ export interface AddFundsData {
   recordId: string;
 }
 
-const fiscalYears = ["2025", "2024", "2023"];
+const fiscalYears = ["2026", "2025", "2024", "2023"];
 const recordIds = ["RID-2024-001", "RID-2024-002", "RID-2024-003", "RID-2023-001", "RID-2023-002"];
 
 export function AddFundsModal({ isOpen, onClose, budgetType, onConfirm }: AddFundsModalProps) {
   const [fiscalYear, setFiscalYear] = useState("");
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState();
   const [recordId, setRecordId] = useState("");
   const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
   const [isRecordDropdownOpen, setIsRecordDropdownOpen] = useState(false);
@@ -63,7 +63,7 @@ export function AddFundsModal({ isOpen, onClose, budgetType, onConfirm }: AddFun
 
   const handleClose = () => {
     setFiscalYear("");
-    setAmount(0);
+    setAmount();
     setRecordId("");
     setRecordSearchQuery("");
     setIsYearDropdownOpen(false);

@@ -7,6 +7,9 @@ interface NewLineItemModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (data: NewLineItemData) => void;
+  totalAnnualBudget?: number;
+  totalSupplementalBudget?: number;
+  totalCommitted?: number;
 }
 
 export interface NewLineItemData {
@@ -49,7 +52,14 @@ const needsIdOptions = [
   "NID-2024-005"
 ];
 
-export function NewLineItemModal({ isOpen, onClose, onConfirm }: NewLineItemModalProps) {
+export function NewLineItemModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm,
+  totalAnnualBudget = 0,
+  totalSupplementalBudget = 0,
+  totalCommitted = 0
+}: NewLineItemModalProps) {
   const [sourceOfFund, setSourceOfFund] = useState("Annual");
   const [lineItemName, setLineItemName] = useState("");
   const [activityType, setActivityType] = useState("Projects/Programs/Activities (PPA)");
@@ -81,9 +91,9 @@ export function NewLineItemModal({ isOpen, onClose, onConfirm }: NewLineItemModa
   const fromDateDropdownRef = useRef<HTMLDivElement>(null);
   const toDateDropdownRef = useRef<HTMLDivElement>(null);
 
-  const totalAnnualBudget = 845000;
-  const totalSupplementalBudget = 0;
-  const amountAvailable = sourceOfFund === "Annual" ? 845000 : 0;
+  // Calculate available budget based on source of fund
+  const selectedTotalBudget = sourceOfFund === "Annual" ? totalAnnualBudget : totalSupplementalBudget;
+  const amountAvailable = selectedTotalBudget - totalCommitted;
 
   // Check if amount exceeds available allocation
   const isAmountExceeded = amountToAllocate > amountAvailable;
@@ -274,12 +284,18 @@ export function NewLineItemModal({ isOpen, onClose, onConfirm }: NewLineItemModa
           {/* Budget Information */}
           <div className="flex justify-between mb-[23px]">
             <div className="content-stretch flex flex-col gap-[11px] items-start">
-              <p className="font-['Inter:Medium',sans-serif] font-medium leading-[20px] text-[15px] text-black">Total Annual Budget</p>
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[34px] text-[29px] tracking-[-0.29px] text-black">₱{totalAnnualBudget.toLocaleString()}.00</p>
+              <p className="font-['Inter:Medium',sans-serif] font-medium leading-[20px] text-[15px] text-black">
+                Total {sourceOfFund} Budget
+              </p>
+              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[34px] text-[29px] tracking-[-0.29px] text-black">
+                ₱{selectedTotalBudget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
             </div>
             <div className="content-stretch flex flex-col gap-[11px] items-start">
               <p className="font-['Inter:Medium',sans-serif] font-medium leading-[20px] text-[15px] text-black">Amount Available for Allocation</p>
-              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[34px] text-[29px] tracking-[-0.29px] text-black">₱{amountAvailable.toLocaleString()}.00</p>
+              <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[34px] text-[29px] tracking-[-0.29px] text-black">
+                ₱{amountAvailable.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
             </div>
           </div>
 
