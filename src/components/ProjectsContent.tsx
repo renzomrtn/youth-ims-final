@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Plus, Upload, Edit } from "lucide-react";
+import { Plus, Edit } from "lucide-react";
 import { ProjectMonitorContent } from "./ProjectMonitorContent";
 import { CreateProjectModal } from "./CreateProjectModal";
 import { CommitteeMembershipsModal } from "./CommitteeMembershipsModal";
 import { CertificateGenerator } from "./CertificateGenerator";
+import { ProjectsByYearContent } from "./ProjectsByYearContent";
 import svgPaths from "../imports/svg-u8mtnpgcn3";
 import React from "react";
 
@@ -22,7 +23,7 @@ interface ProjectsContentProps {
     chairman: string;
     viceChairman: string;
   }) => void;
-  refreshTrigger?: number;  // ← Add this
+  refreshTrigger?: number;
 }
 
 interface Committee {
@@ -62,12 +63,6 @@ interface Project {
   committees: Committee[];
 }
 
-// SVG paths for certificate generator
-const svgPathsCert = {
-  p3053b100: "M3.125 11.875L6.25 15L10 8.75",
-  p320a7e80: "M6.25 10L10 6.25"
-};
-
 export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKanban, refreshTrigger }: ProjectsContentProps) {
   const [activeTab, setActiveTab] = useState("projects");
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
@@ -99,33 +94,30 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
   const handleCloseKanban = async () => {
     setKanbanData(null);
     setCurrentSubPage(undefined);
-    // Trigger a project refresh - you'll need to pass this function down
   };
 
   useEffect(() => {
     const loadProjects = async () => {
       try {
         const data = await projectsAPI.getAll();
-        console.log('Loaded projects:', data); // ← Add this to debug
+        console.log('Loaded projects:', data);
         if (data && Array.isArray(data)) {
           setProjects(data);
         } else {
           console.error('Invalid projects data:', data);
-          setProjects([]); // Fallback to empty array
+          setProjects([]);
         }
       } catch (error) {
         console.error("Error loading projects:", error);
-        setProjects([]); // Fallback to empty array on error
+        setProjects([]);
       }
     };
 
     loadProjects();
-  }, [refreshTrigger]); // ← Add refreshTrigger as dependency
+  }, [refreshTrigger]);
 
-  // Mock projects data - reference to state
   const mockProjects = projects;
 
-  // Step 1: Handle first modal confirm - open second modal
   const handleFirstModalConfirm = (data: {
     proponent: string;
     lineItemId: string;
@@ -137,7 +129,6 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     setIsCommitteeMembershipsModalOpen(true);
   };
 
-  // Step 2: Handle second modal confirm - create project
   const handleCommitteeMembershipsConfirm = async (committees: Array<{
     id: string;
     name: string;
@@ -147,7 +138,6 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
   }>) => {
     if (!pendingProjectData) return;
 
-    // Find line item details
     const lineItemDetails = [
       { id: "LI-L-2024/910-2K2Q", area: "Health Promotion" },
       { id: "LI-E-2024/850-3M4P", area: "Education" },
@@ -156,7 +146,6 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
       { id: "LI-Y-2024/540-2X7Z", area: "Youth Development" }
     ].find(item => item.id === pendingProjectData.lineItemId);
 
-    // Generate gradients for committee members
     const gradients = [
       "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
@@ -178,7 +167,6 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
         .toUpperCase();
     };
 
-    // Transform committees to match project structure
     const formattedCommittees = committees.map((committee, idx) => ({
       id: committee.id || `committee-${idx}`,
       name: committee.name,
@@ -216,10 +204,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     };
 
     try {
-      // ✨ Save to database!
-    const createdProject = await projectsAPI.create(newProject);
-
-      // Then update local state
+      const createdProject = await projectsAPI.create(newProject);
       setProjects([...projects, createdProject]);
       setIsCommitteeMembershipsModalOpen(false);
       setPendingProjectData(null);
@@ -281,142 +266,13 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     }
 
     if (activeTab === "projectsperyear") {
-      const projects2024 = mockProjects;
-      const projects2023: Project[] = [];
-      const projects2022: Project[] = [];
-
       return (
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-black dark:text-white">Projects by Year</h2>
-            <input
-              type="text"
-              placeholder="Search projects..."
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400"
-            />
-          </div>
-
-          {/* Projects for 2024 */}
-          <div className="mb-6">
-            <button
-              onClick={() => toggleYear(2024)}
-              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-            >
-              <h3 className="text-black dark:text-white">Projects for 2024</h3>
-              <ChevronDown
-                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${expandedYears.includes(2024) ? "rotate-180" : ""
-                  }`}
-              />
-            </button>
-            {expandedYears.includes(2024) && (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Proponent</th>
-                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Project Title</th>
-                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Line Item Information</th>
-                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Budgeting Information</th>
-                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Date Information</th>
-                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Progress & Status</th>
-                      <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {projects2024.map((project) => (
-                      <tr
-                        key={project.id}
-                        className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                      >
-                        <td className="px-6 py-4 text-black dark:text-white">{project.proponent}</td>
-                        <td className="px-6 py-4 text-black dark:text-white">{project.title}</td>
-                        <td className="px-6 py-4">
-                          <div className="text-black dark:text-white">{project.lineItemId}</div>
-                          <div className="text-gray-600 dark:text-gray-400 text-sm">{project.lineItemArea}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-black dark:text-white">Budget: {project.budget}</div>
-                          <div className="text-gray-600 dark:text-gray-400 text-sm">Spent: {project.spent}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-black dark:text-white text-sm">Started: {project.startDate}</div>
-                          <div className="text-black dark:text-white text-sm">Due Date: {project.dueDate}</div>
-                          <div className="text-gray-600 dark:text-gray-400 text-sm">Accomplished: {project.accomplished}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-sm border-2 flex items-center gap-1.5 w-fit ${project.status === "Completed"
-                            ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-600 dark:border-green-400"
-                            : "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-600 dark:border-orange-400"
-                            }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${project.status === "Completed" ? "bg-green-600 dark:bg-green-400" : "bg-orange-600 dark:bg-orange-400"
-                              }`} />
-                            {project.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">
-                            <Edit className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Projects for 2023 */}
-          <div className="mb-6">
-            <button
-              onClick={() => toggleYear(2023)}
-              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-            >
-              <h3 className="text-black dark:text-white">Projects for 2023</h3>
-              <ChevronDown
-                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${expandedYears.includes(2023) ? "rotate-180" : ""
-                  }`}
-              />
-            </button>
-            {expandedYears.includes(2023) && (
-              <div className="p-4 text-gray-600 dark:text-gray-400">
-                No projects for this year
-              </div>
-            )}
-          </div>
-
-          {/* Projects for 2022 */}
-          <div className="mb-6">
-            <button
-              onClick={() => toggleYear(2022)}
-              className="w-full flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-2 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-            >
-              <h3 className="text-black dark:text-white">Projects for 2022</h3>
-              <ChevronDown
-                className={`w-5 h-5 text-gray-600 dark:text-gray-400 transition-transform ${expandedYears.includes(2022) ? "rotate-180" : ""
-                  }`}
-              />
-            </button>
-            {expandedYears.includes(2022) && (
-              <div className="p-4 text-gray-600 dark:text-gray-400">
-                No projects for this year
-              </div>
-            )}
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-center gap-2 p-6">
-            <button className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-              Previous
-            </button>
-            <button className="px-4 py-2 bg-[#174499] text-white rounded">
-              1
-            </button>
-            <button className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-              Next
-            </button>
-          </div>
-        </div>
+        <ProjectsByYearContent
+          darkMode={darkMode}
+          projects={mockProjects}
+          expandedYears={expandedYears}
+          onToggleYear={toggleYear}
+        />
       );
     }
 
@@ -424,44 +280,47 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     return (
       <>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <header className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-black dark:text-white">Projects for 2025</h2>
           <div className="flex items-center gap-4">
             <input
-              type="text"
+              type="search"
               placeholder="Search projects..."
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400"
+              aria-label="Search projects"
             />
-            <button className="flex items-center gap-2 px-4 py-2 bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-lg transition-colors" onClick={() => setIsCreateProjectModalOpen(true)}>
-              <Plus className="w-4 h-4" />
+            <button 
+              className="flex items-center gap-2 px-4 py-2 bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-lg transition-colors" 
+              onClick={() => setIsCreateProjectModalOpen(true)}
+              aria-label="Create new project"
+            >
+              <Plus className="w-4 h-4" aria-hidden="true" />
               New Project
             </button>
           </div>
-        </div>
+        </header>
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full" aria-label="Projects for 2025">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300 w-8"></th>
-                <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Proponent</th>
-                <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Project Title</th>
-                <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Line Item Information</th>
-                <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Budgeting Information</th>
-                <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Date Information</th>
-                <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Progress & Status</th>
-                <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Expense Verification</th>
-                <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Action</th>
+                <th scope="col" className="px-6 py-3 text-left text-gray-600 dark:text-gray-300 w-8"></th>
+                <th scope="col" className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Proponent</th>
+                <th scope="col" className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Project Title</th>
+                <th scope="col" className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Line Item Information</th>
+                <th scope="col" className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Budgeting Information</th>
+                <th scope="col" className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Date Information</th>
+                <th scope="col" className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Progress & Status</th>
+                <th scope="col" className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Expense Verification</th>
+                <th scope="col" className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Action</th>
               </tr>
             </thead>
             <tbody>
               {mockProjects.map((project) => (
                 <React.Fragment key={project.id}>
                   {/* Main Row */}
-                  <tr
-                    className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                  >
+                  <tr className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="px-6 py-4">
                       {project.committees?.length > 0 && (
                         <button
@@ -470,8 +329,10 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                           style={{
                             transform: expandedRows.includes(project.id) ? "rotate(180deg)" : "rotate(0deg)"
                           }}
+                          aria-expanded={expandedRows.includes(project.id)}
+                          aria-label={`${expandedRows.includes(project.id) ? 'Collapse' : 'Expand'} committees for ${project.title}`}
                         >
-                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+                          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d={svgPaths.p1e8d6080} fill="currentColor" className="text-gray-600 dark:text-gray-400" />
                           </svg>
                         </button>
@@ -480,22 +341,31 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                     <td className="px-6 py-4 text-black dark:text-white">{project.proponent}</td>
                     <td className="px-6 py-4 text-black dark:text-white">{project.title}</td>
                     <td className="px-6 py-4">
-                      <div className="text-black dark:text-white">{project.lineItemId}</div>
-                      <div className="text-gray-600 dark:text-gray-400">{project.lineItemArea}</div>
+                      <p className="text-black dark:text-white">{project.lineItemId}</p>
+                      <p className="text-gray-600 dark:text-gray-400">{project.lineItemArea}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-black dark:text-white">Budget: {project.budget}</div>
-                      <div className="text-gray-600 dark:text-gray-400">Spent: {project.spent}</div>
+                      <p className="text-black dark:text-white">Budget: {project.budget}</p>
+                      <p className="text-gray-600 dark:text-gray-400">Spent: {project.spent}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-black dark:text-white">Started: {project.startDate}</div>
-                      <div className="text-black dark:text-white">Due Date: {project.dueDate}</div>
-                      <div className="text-gray-600 dark:text-gray-400">Accomplished: {project.accomplished}</div>
+                      <p className="text-black dark:text-white">Started: <time>{project.startDate}</time></p>
+                      <p className="text-black dark:text-white">Due Date: <time>{project.dueDate}</time></p>
+                      <p className="text-gray-600 dark:text-gray-400">Accomplished: <time>{project.accomplished}</time></p>
                     </td>
                     <td className="px-6 py-4">
                       <div className="mb-2">
-                        <div className="text-black dark:text-white mb-1">{project.progress}%</div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                        <output className="text-black dark:text-white mb-1 block" aria-label={`Progress: ${project.progress} percent`}>
+                          {project.progress}%
+                        </output>
+                        <div 
+                          className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2" 
+                          role="progressbar" 
+                          aria-valuenow={project.progress} 
+                          aria-valuemin={0} 
+                          aria-valuemax={100}
+                          aria-label="Project progress"
+                        >
                           <div
                             className="h-2 rounded-full"
                             style={{
@@ -508,9 +378,9 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${project.status === "Completed"
                         ? "bg-[#d1fae5] border-[#6ee7b7] text-[#047857]"
                         : "bg-[#fffbeb] border-[#fe9a00] text-[#e17100]"
-                        }`}>
+                        }`} role="status" aria-label={`Project status: ${project.status}`}>
                         <span className={`w-2 h-2 rounded-full mr-2 ${project.status === "Completed" ? "bg-[#10b981]" : "bg-[#fe9a00]"
-                          }`} />
+                          }`} aria-hidden="true" />
                         {project.status}
                       </span>
                     </td>
@@ -520,18 +390,18 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                         : project.expenseStatus === "Pending"
                           ? "bg-gray-100 border-gray-300 text-gray-600"
                           : "bg-[#fff7f7] border-[#fe0000] text-[#e10000]"
-                        }`}>
+                        }`} role="status" aria-label={`Expense verification: ${project.expenseStatus}`}>
                         <span className={`w-2 h-2 rounded-full mr-2 ${project.expenseStatus === "Verified"
                           ? "bg-[#10b981]"
                           : project.expenseStatus === "Pending"
                             ? "bg-gray-400"
                             : "bg-[#fe0000]"
-                          }`} />
+                          }`} aria-hidden="true" />
                         {project.expenseStatus}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded">
+                      <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" aria-label={`Edit ${project.title}`}>
                         <Edit className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                       </button>
                     </td>
@@ -541,70 +411,80 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                   {expandedRows.includes(project.id) && project.committees.length > 0 && (
                     <tr className="bg-gray-50 dark:bg-gray-800">
                       <td colSpan={9} className="px-6 py-6">
-                        <div className="grid grid-cols-4 gap-4">
-                          {project.committees?.map((committee, idx) => (
-                            <button
-                              key={committee.id || `committee-${project.id}-${idx}`}  // ← ADD THIS KEY!
-                              onClick={() => onOpenKanban({
-                                projectId: project.id.toString(),
-                                projectTitle: project.title,
-                                committeeName: committee.name,
-                                committeeId: committee.id || idx.toString(), // ← Use committee.id
-                                chairman: committee.chairman.name,
-                                viceChairman: committee.viceChairman.name,
-                              })}
-                              className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-[#174499] dark:hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer text-left"
-                            >
-                              <h3 className="text-center text-[#364153] dark:text-gray-200 mb-4">
-                                Committee: {committee.name}
-                              </h3>
-
-                              {/* Chairman */}
-                              <div className="flex items-center gap-2 mb-3">
-                                <div
-                                  className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
-                                  style={{ backgroundImage: committee.chairman.gradient }}
+                        <section aria-label={`Committees for ${project.title}`}>
+                          <div className="grid grid-cols-4 gap-4">
+                            {project.committees?.map((committee, idx) => (
+                              <article
+                                key={committee.id || `committee-${project.id}-${idx}`}
+                                className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600"
+                              >
+                                <button
+                                  onClick={() => onOpenKanban({
+                                    projectId: project.id.toString(),
+                                    projectTitle: project.title,
+                                    committeeName: committee.name,
+                                    committeeId: committee.id || idx.toString(),
+                                    chairman: committee.chairman.name,
+                                    viceChairman: committee.viceChairman.name,
+                                  })}
+                                  className="w-full hover:border-[#174499] dark:hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer text-left"
+                                  aria-label={`View kanban board for ${committee.name} committee`}
                                 >
-                                  <span className="text-xs">{committee.chairman.initials}</span>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-[#6a7282] dark:text-gray-400">Chairman</div>
-                                  <div className="text-sm text-[#4a5565] dark:text-gray-300">{committee.chairman.name}</div>
-                                </div>
-                              </div>
+                                  <h3 className="text-center text-[#364153] dark:text-gray-200 mb-4">
+                                    Committee: {committee.name}
+                                  </h3>
 
-                              {/* Vice Chairman */}
-                              <div className="flex items-center gap-2 mb-4">
-                                <div
-                                  className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
-                                  style={{ backgroundImage: committee.viceChairman.gradient }}
-                                >
-                                  <span className="text-xs">{committee.viceChairman.initials}</span>
-                                </div>
-                                <div>
-                                  <div className="text-xs text-[#6a7282] dark:text-gray-400">Vice Chairman</div>
-                                  <div className="text-sm text-[#4a5565] dark:text-gray-300">{committee.viceChairman.name}</div>
-                                </div>
-                              </div>
-
-                              {/* Members */}
-                              <div className="mb-2 text-sm text-[#364153] dark:text-gray-200">Members:</div>
-                              <div className="space-y-2">
-                                {committee.members.map((member, mIdx) => (
-                                  <div key={`${committee.id}-member-${mIdx}`} className="flex items-center gap-2">
+                                  {/* Chairman */}
+                                  <div className="flex items-center gap-2 mb-3">
                                     <div
-                                      className="w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0"
-                                      style={{ backgroundImage: member.gradient }}
+                                      className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
+                                      style={{ backgroundImage: committee.chairman.gradient }}
+                                      aria-hidden="true"
                                     >
-                                      <span className="text-xs">{member.initials}</span>
+                                      <span className="text-xs">{committee.chairman.initials}</span>
                                     </div>
-                                    <div className="text-sm text-[#4a5565] dark:text-gray-300">{member.name}</div>
+                                    <div>
+                                      <p className="text-xs text-[#6a7282] dark:text-gray-400">Chairman</p>
+                                      <p className="text-sm text-[#4a5565] dark:text-gray-300">{committee.chairman.name}</p>
+                                    </div>
                                   </div>
-                                ))}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
+
+                                  {/* Vice Chairman */}
+                                  <div className="flex items-center gap-2 mb-4">
+                                    <div
+                                      className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
+                                      style={{ backgroundImage: committee.viceChairman.gradient }}
+                                      aria-hidden="true"
+                                    >
+                                      <span className="text-xs">{committee.viceChairman.initials}</span>
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-[#6a7282] dark:text-gray-400">Vice Chairman</p>
+                                      <p className="text-sm text-[#4a5565] dark:text-gray-300">{committee.viceChairman.name}</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Members */}
+                                  <p className="mb-2 text-sm text-[#364153] dark:text-gray-200">Members:</p>
+                                  <ul className="space-y-2">
+                                    {committee.members.map((member, mIdx) => (
+                                      <li key={`${committee.id}-member-${mIdx}`} className="flex items-center gap-2">
+                                        <div
+                                          className="w-6 h-6 rounded-full flex items-center justify-center text-white shrink-0"
+                                          style={{ backgroundImage: member.gradient }}
+                                          aria-hidden="true"
+                                        >
+                                          <span className="text-xs">{member.initials}</span>
+                                        </div>
+                                        <span className="text-sm text-[#4a5565] dark:text-gray-300">{member.name}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </button>
+                              </article>
+                            ))}
+                          </div>
+                        </section>
                       </td>
                     </tr>
                   )}
@@ -615,24 +495,30 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-gray-700">
+        <nav className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-gray-700" aria-label="Pagination">
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
             disabled={currentPage === 1}
+            aria-label="Go to previous page"
           >
             Previous
           </button>
-          <button className="px-4 py-2 bg-[#174499] text-white rounded">
+          <button 
+            className="px-4 py-2 bg-[#174499] text-white rounded"
+            aria-current="page"
+            aria-label={`Page ${currentPage}, current page`}
+          >
             {currentPage}
           </button>
           <button
             onClick={() => setCurrentPage(currentPage + 1)}
             className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            aria-label="Go to next page"
           >
             Next
           </button>
-        </div>
+        </nav>
       </>
     );
   };
@@ -640,32 +526,41 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
   return (
     <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900">
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8">
-        <div className="flex gap-8">
+      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8" aria-label="Project views">
+        <ul className="flex gap-8" role="tablist">
           {["Projects", "Certificate Generator", "Projects per Year", "Project Monitor"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => handleTabChange(tab.toLowerCase().replace(/\s+/g, ""))}
-              className={`py-4 relative ${activeTab === tab.toLowerCase().replace(/\s+/g, "")
-                ? "text-[#174499] dark:text-blue-400"
-                : "text-[#606060] dark:text-gray-400"
-                }`}
-            >
-              <span>{tab}</span>
-              {activeTab === tab.toLowerCase().replace(/\s+/g, "") && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#174499] dark:bg-blue-400" />
-              )}
-            </button>
+            <li key={tab} role="presentation">
+              <button
+                onClick={() => handleTabChange(tab.toLowerCase().replace(/\s+/g, ""))}
+                className={`py-4 relative ${activeTab === tab.toLowerCase().replace(/\s+/g, "")
+                  ? "text-[#174499] dark:text-blue-400"
+                  : "text-[#606060] dark:text-gray-400"
+                  }`}
+                role="tab"
+                aria-selected={activeTab === tab.toLowerCase().replace(/\s+/g, "")}
+                aria-controls={`${tab.toLowerCase().replace(/\s+/g, "")}-panel`}
+              >
+                <span>{tab}</span>
+                {activeTab === tab.toLowerCase().replace(/\s+/g, "") && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#174499] dark:bg-blue-400" aria-hidden="true" />
+                )}
+              </button>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </nav>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-8">
+      <main 
+        className="flex-1 overflow-auto p-8" 
+        role="tabpanel" 
+        id={`${activeTab}-panel`}
+        aria-labelledby={`${activeTab}-tab`}
+      >
         <div className="bg-white dark:bg-gray-800 rounded-lg">
           {renderContent()}
         </div>
-      </div>
+      </main>
 
       {/* Create Project Modal */}
       <CreateProjectModal isOpen={isCreateProjectModalOpen} onClose={() => setIsCreateProjectModalOpen(false)} onCreate={handleFirstModalConfirm} />

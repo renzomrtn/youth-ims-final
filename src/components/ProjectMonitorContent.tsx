@@ -23,14 +23,14 @@ interface Project {
 
 export function ProjectMonitorContent({ darkMode, viewMode }: ProjectMonitorContentProps) {
   const [selectedYear, setSelectedYear] = useState("2025");
-  const [selectedBarangay, setSelectedBarangay] = useState("Cabaug");
+  const [selectedBarangay, setSelectedBarangay] = useState("Calauag");
   const [searchQuery, setSearchQuery] = useState("");
   const [yearDropdownOpen, setYearDropdownOpen] = useState(false);
   const [barangayDropdownOpen, setBarangayDropdownOpen] = useState(false);
 
   const years = ["2025", "2024", "2023", "2022"];
   const barangays = [
-    "Cabaug",
+    "Calauag",
     "San Isidro",
     "Poblacion",
     "Bagong Silang",
@@ -134,7 +134,7 @@ export function ProjectMonitorContent({ darkMode, viewMode }: ProjectMonitorCont
         {/* Filters and Search */}
         <div className="flex items-center gap-4">
           {/* Year Dropdown */}
-          <div className="relative">
+          <div className="relative z-20">
             <button
               onClick={() => {
                 setYearDropdownOpen(!yearDropdownOpen);
@@ -146,7 +146,7 @@ export function ProjectMonitorContent({ darkMode, viewMode }: ProjectMonitorCont
               <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </button>
             {yearDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 min-w-[120px]">
+              <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-30 min-w-[120px]">
                 {years.map(year => (
                   <button
                     key={year}
@@ -166,7 +166,7 @@ export function ProjectMonitorContent({ darkMode, viewMode }: ProjectMonitorCont
           </div>
 
           {/* Barangay Dropdown */}
-          <div className="relative">
+          <div className="relative z-20">
             <button
               onClick={() => {
                 setBarangayDropdownOpen(!barangayDropdownOpen);
