@@ -34,6 +34,7 @@ export function AddTaskModal({ darkMode, onClose, onConfirm }: AddTaskModalProps
   const [priority, setPriority] = useState<"High" | "Medium" | "Low">("Medium");
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
   const [memberDropdownIndex, setMemberDropdownIndex] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {

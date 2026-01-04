@@ -184,7 +184,7 @@ function KanbanColumn({
       </div>
 
       {/* Column Content */}
-      <div className="flex-1 p-4 space-y-3 overflow-y-auto min-h-[200px]">
+      <div className="p-4 space-y-3 min-h-[200px]">
         {/* Add Task Button - Only in To Do column */}
         {column.id === "todo" && onAddTask && (
           <button
@@ -309,8 +309,8 @@ export function KanbanBoard({
     dueDate: string;
     priority: "High" | "Medium" | "Low";
   }) => {
-    const allTasks = columns.flatMap(col => col.tasks);
-    const maxId = allTasks.length > 0 ? Math.max(...allTasks.map(t => t.id)) : 0;
+    // Use timestamp-based ID to avoid collisions
+    const newTaskId = Date.now();
 
     const date = new Date(taskData.dueDate);
     const formattedDate = date.toLocaleDateString('en-US', {
@@ -320,7 +320,7 @@ export function KanbanBoard({
     });
 
     const newTask: Task = {
-      id: maxId + 1,
+      id: newTaskId,
       title: taskData.title,
       assignee: taskData.assignees.length > 1
         ? taskData.assignees.join(", ")
@@ -351,6 +351,7 @@ export function KanbanBoard({
     } catch (error) {
       console.error("Error creating task:", error);
       alert("Failed to create task");
+      throw error; // Re-throw so the modal can handle it
     }
   };
 
@@ -396,60 +397,66 @@ export function KanbanBoard({
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900 overflow-hidden">
-        {/* Header with Back Button */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 mb-4 text-[#4a5565] dark:text-gray-400 hover:text-[#174499] dark:hover:text-blue-400 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Projects</span>
-          </button>
-          <div>
-            <h2 className="text-black dark:text-white mb-1">
-              {projectTitle} - {committeeName} Committee
-            </h2>
-            <p className="text-[#4a5565] dark:text-gray-400">
-              Chairman: {chairman} | Vice Chairman: {viceChairman}
-            </p>
+        <div className="flex flex-col w-full">
+          {/* Header with Back Button */}
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-2 mb-4 text-[#4a5565] dark:text-gray-400 hover:text-[#174499] dark:hover:text-blue-400 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Back to Projects</span>
+            </button>
+            <div>
+              <h2 className="text-black dark:text-white mb-1">
+                {projectTitle} - {committeeName} Committee
+              </h2>
+              <p className="text-[#4a5565] dark:text-gray-400">
+                Chairman: {chairman} | Vice Chairman: {viceChairman}
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Task Progress Section */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
-          <h3 className="text-black dark:text-white mb-4 font-semibold">TASK PROGRESS</h3>
-          <div className="grid grid-cols-4 gap-6 mb-4">
-            <div>
-              <div className="text-gray-600 dark:text-gray-400 mb-1 text-sm">Tasks To Do:</div>
-              <div className="text-black dark:text-white text-3xl font-semibold">{todoTasks}</div>
+          {/* Task Progress Section */}
+          <div className="flex gap-5 p-6 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+            <div className="flex-1">
+              <h3 className="text-black dark:text-white mb-4 font-semibold">TASK PROGRESS</h3>
+              <div className="grid grid-cols-4 gap-6 mb-4">
+                <div>
+                  <div className="text-gray-600 dark:text-gray-400 mb-1 text-sm">Tasks To Do:</div>
+                  <div className="text-black dark:text-white text-3xl font-semibold">{todoTasks}</div>
+                </div>
+                <div>
+                  <div className="text-gray-600 dark:text-gray-400 mb-1 text-sm">Tasks In Progress:</div>
+                  <div className="text-black dark:text-white text-3xl font-semibold">{inProgressTasks}</div>
+                </div>
+                <div>
+                  <div className="text-gray-600 dark:text-gray-400 mb-1 text-sm">Tasks In Review:</div>
+                  <div className="text-black dark:text-white text-3xl font-semibold">{reviewTasks}</div>
+                </div>
+                <div>
+                  <div className="text-gray-600 dark:text-gray-400 mb-1 text-sm">Tasks Finished:</div>
+                  <div className="text-black dark:text-white text-3xl font-semibold">{doneTasks}</div>
+                </div>
+              </div>
             </div>
-            <div>
-              <div className="text-gray-600 dark:text-gray-400 mb-1 text-sm">Tasks In Progress:</div>
-              <div className="text-black dark:text-white text-3xl font-semibold">{inProgressTasks}</div>
+            <div className="flex-1">
+              <div className="mb-2 mt-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-600 dark:text-gray-400 text-sm">Progress:</span>
+                  <span className="text-black dark:text-white font-semibold">{progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                  <div
+                    className="h-3 rounded-full bg-[#00C950] transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+              <div className="text-gray-600 dark:text-gray-400 text-sm">
+                Project's Due: Oct 21, 2025
+              </div>
             </div>
-            <div>
-              <div className="text-gray-600 dark:text-gray-400 mb-1 text-sm">Tasks In Review:</div>
-              <div className="text-black dark:text-white text-3xl font-semibold">{reviewTasks}</div>
-            </div>
-            <div>
-              <div className="text-gray-600 dark:text-gray-400 mb-1 text-sm">Tasks Finished:</div>
-              <div className="text-black dark:text-white text-3xl font-semibold">{doneTasks}</div>
-            </div>
-          </div>
-          <div className="mb-2">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-gray-600 dark:text-gray-400 text-sm">Progress:</span>
-              <span className="text-black dark:text-white font-semibold">{progress}%</span>
-            </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-              <div
-                className="h-3 rounded-full bg-[#00C950] transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-          <div className="text-gray-600 dark:text-gray-400 text-sm">
-            Project's Due: Oct 21, 2025
           </div>
         </div>
 
