@@ -25,13 +25,12 @@ function AppContent() {
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState("dashboard");
-  const [currentSubPage, setCurrentSubPage] = useState<
-    string | undefined
-  >(undefined);
-  const [viewMode, setViewMode] = useState<
-    "federation" | "barangay"
-  >("federation");
-
+  const [currentSubPage, setCurrentSubPage] = useState<string | undefined>(undefined);
+  const [viewMode, setViewMode] = useState<"federation" | "barangay">("federation");
+  
+  // Add this: trigger to refresh projects
+  const [projectsRefreshTrigger, setProjectsRefreshTrigger] = useState(0);
+  
   // Kanban state
   const [kanbanData, setKanbanData] = useState<{
     projectId: string;
@@ -45,11 +44,16 @@ function AppContent() {
   const toggleDarkMode = () => setDarkMode(!darkMode);
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
+  // ← Add this function
+  const refreshProjects = () => {
+    setProjectsRefreshTrigger(prev => prev + 1);
+  };
+
   const handleOpenKanban = (data: {
-    projectId: string;  // ← Add this
+    projectId: string;
     projectTitle: string;
     committeeName: string;
-    committeeId: string;  // ← Add this
+    committeeId: string;
     chairman: string;
     viceChairman: string;
   }) => {
@@ -103,6 +107,7 @@ function AppContent() {
                 chairman={kanbanData.chairman}
                 viceChairman={kanbanData.viceChairman}
                 onBack={handleCloseKanban}
+                onProgressUpdate={refreshProjects}  // ← Now defined!
               />
             ) : (
               <>
@@ -118,6 +123,7 @@ function AppContent() {
                     viewMode={viewMode}
                     onSubPageChange={setCurrentSubPage}
                     onOpenKanban={handleOpenKanban}
+                    refreshTrigger={projectsRefreshTrigger}  // ← Pass the trigger
                   />
                 )}
                 {currentPage === "budgetpreparation" && (

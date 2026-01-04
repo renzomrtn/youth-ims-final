@@ -22,6 +22,7 @@ interface ProjectsContentProps {
     chairman: string;
     viceChairman: string;
   }) => void;
+  refreshTrigger?: number;  // ← Add this
 }
 
 interface Committee {
@@ -67,7 +68,7 @@ const svgPathsCert = {
   p320a7e80: "M6.25 10L10 6.25"
 };
 
-export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKanban }: ProjectsContentProps) {
+export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKanban, refreshTrigger }: ProjectsContentProps) {
   const [activeTab, setActiveTab] = useState("projects");
   const [expandedRows, setExpandedRows] = useState<number[]>([]);
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
@@ -119,7 +120,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     };
 
     loadProjects();
-  }, []);
+  }, [refreshTrigger]); // ← Add refreshTrigger as dependency
 
   // Mock projects data - reference to state
   const mockProjects = projects;
@@ -543,13 +544,12 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                         <div className="grid grid-cols-4 gap-4">
                           {project.committees?.map((committee, idx) => (
                             <button
-                              key={committee.id || `committee-${project.id}-${idx}`} // ← Use committee.id
+                              key={committee.id || `committee-${project.id}-${idx}`}  // ← ADD THIS KEY!
                               onClick={() => onOpenKanban({
                                 projectId: project.id.toString(),
                                 projectTitle: project.title,
                                 committeeName: committee.name,
                                 committeeId: committee.id || idx.toString(), // ← Use committee.id
-                                committeeId: idx.toString(),
                                 chairman: committee.chairman.name,
                                 viceChairman: committee.viceChairman.name,
                               })}

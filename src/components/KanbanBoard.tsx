@@ -1,6 +1,6 @@
-import { tasksAPI } from "../utils/database";
+import { tasksAPI, projectsAPI } from "../utils/database";
 import { useState } from "react";
-import { ArrowLeft, Plus, GripVertical } from "lucide-react";
+import { ArrowLeft, Plus, GripVertical, Trash2 } from "lucide-react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { AddTaskModal } from "./AddTaskModal";
@@ -15,6 +15,7 @@ interface KanbanBoardProps {
   chairman: string;
   viceChairman: string;
   onBack: () => void;
+  onProgressUpdate?: () => void;
 }
 
 interface Task {
@@ -44,12 +45,14 @@ function TaskCard({
   columnId,
   index,
   moveTask,
+  onDelete,
   darkMode
 }: {
   task: Task;
   columnId: string;
   index: number;
   moveTask: (taskId: number, fromColumn: string, toColumn: string, toIndex: number) => void;
+  onDelete: (taskId: number) => void;  // ← Add this
   darkMode: boolean;
 }) {
   const [{ isDragging }, drag, preview] = useDrag({
@@ -91,20 +94,35 @@ function TaskCard({
     <div
       ref={(node) => preview(drop(node))}
       className={`bg-white dark:bg-gray-700 rounded-lg p-4 border-2 transition-all ${isDragging
-          ? "opacity-50 border-blue-400 dark:border-blue-500"
-          : isOver
-            ? "border-blue-300 dark:border-blue-600"
-            : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-        } ${isDragging ? "" : "hover:shadow-lg cursor-move"}`}
+        ? "opacity-50 border-blue-400 dark:border-blue-500"
+        : isOver
+          ? "border-blue-300 dark:border-blue-600"
+          : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
+        } ${isDragging ? "" : "hover:shadow-lg"}`}  // ← Removed cursor-move from here
     >
       <div className="flex items-start gap-2">
         <div ref={drag} className="cursor-grab active:cursor-grabbing pt-1">
           <GripVertical className="w-4 h-4 text-gray-400 dark:text-gray-500" />
         </div>
         <div className="flex-1">
-          <h4 className="text-black dark:text-white mb-2 font-medium">
-            {task.title}
-          </h4>
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h4 className="text-black dark:text-white font-medium flex-1">
+              {task.title}
+            </h4>
+            {/* Delete button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm("Are you sure you want to delete this task?")) {
+                  onDelete(task.id);
+                }
+              }}
+              className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors group"
+              title="Delete task"
+            >
+              <Trash2 className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-red-600 dark:group-hover:text-red-400" />
+            </button>
+          </div>
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
             {task.assignee}
           </div>
@@ -127,11 +145,13 @@ function TaskCard({
 function KanbanColumn({
   column,
   moveTask,
+  onDeleteTask,  // ← Add this
   onAddTask,
   darkMode
 }: {
   column: Column;
   moveTask: (taskId: number, fromColumn: string, toColumn: string, toIndex: number) => void;
+  onDeleteTask: (taskId: number) => void;  // ← Add this
   onAddTask?: () => void;
   darkMode: boolean;
 }) {
@@ -184,6 +204,7 @@ function KanbanColumn({
             columnId={column.id}
             index={index}
             moveTask={moveTask}
+            onDelete={onDeleteTask}  // ← Pass it down
             darkMode={darkMode}
           />
         ))}
@@ -208,6 +229,7 @@ export function KanbanBoard({
   chairman,
   viceChairman,
   onBack,
+  onProgressUpdate,
 }: KanbanBoardProps) {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
@@ -272,6 +294,7 @@ export function KanbanBoard({
         .then(() => projectsAPI.updateProgress(projectId)) // ← Add this
         .then(() => {
           console.log('Project progress updated!');
+          onProgressUpdate?.();  // ← Call the callback
         })
         .catch(err => console.error("Error saving task move:", err));
 
@@ -310,9 +333,10 @@ export function KanbanBoard({
     try {
       // Save to database
       await tasksAPI.create(projectId, committeeId, newTask);
-
       // Update project progress
-      await projectsAPI.updateProgress(projectId); // ← Add this
+      await projectsAPI.updateProgress(projectId);
+
+      onProgressUpdate?.();  // ← Call the callback
 
       // Update local state
       setColumns(prevColumns =>
@@ -327,6 +351,37 @@ export function KanbanBoard({
     } catch (error) {
       console.error("Error creating task:", error);
       alert("Failed to create task");
+    }
+  };
+
+  // Add this function after handleAddTask
+  const handleDeleteTask = async (taskId: number) => {
+    try {
+      // Find which column has this task
+      const column = columns.find(col => col.tasks.some(t => t.id === taskId));
+      if (!column) return;
+
+      const task = column.tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      // Delete from database
+      await tasksAPI.delete(projectId, committeeId, taskId.toString());
+      // Update project progress
+      await projectsAPI.updateProgress(projectId);
+
+      onProgressUpdate?.();  // ← Call the callback
+
+      // Update local state
+      setColumns(prevColumns =>
+        prevColumns.map(col =>
+          col.id === column.id
+            ? { ...col, tasks: col.tasks.filter(t => t.id !== taskId) }
+            : col
+        )
+      );
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      alert("Failed to delete task");
     }
   };
 
@@ -407,6 +462,7 @@ export function KanbanBoard({
                   key={column.id}
                   column={column}
                   moveTask={moveTask}
+                  onDeleteTask={handleDeleteTask}  // ← Add this
                   onAddTask={column.id === "todo" ? () => setShowAddTaskModal(true) : undefined}
                   darkMode={darkMode}
                 />
