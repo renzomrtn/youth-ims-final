@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Search, Plus, Edit, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
+import { useState, useEffect } from "react";
+import { Search, Plus, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import { SKMonitorContent } from "./SKMonitorContent";
 import { AddFundsModal } from "./AddFundsModal";
 import { NewLineItemModal, NewLineItemData } from "./NewLineItemModal";
 import { FundAugmentationModal, FundAugmentationData } from "./FundAugmentationModal";
 import { NewNeedsAssessmentModal, NeedsAssessmentData } from "./NewNeedsAssessmentModal";
+import { budgetAPI } from "../utils/database";
 import iconImage from "../assets/840a7c9e4be257a2a4b1a91d02385fb8ed9cd3fd.png";
 
 interface BudgetPreparationContentProps {
@@ -37,6 +37,13 @@ interface NeedsAssessment {
   status: "In Progress" | "Completed" | "Pending";
 }
 
+interface Fund {
+  id: string;
+  fiscalYear: string;
+  amount: number;
+  type: "annual" | "supplemental";
+}
+
 export function BudgetPreparationContent({ darkMode, viewMode }: BudgetPreparationContentProps) {
   const [activeTab, setActiveTab] = useState("lineitems");
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,125 +55,74 @@ export function BudgetPreparationContent({ darkMode, viewMode }: BudgetPreparati
   const [budgetType, setBudgetType] = useState<"annual" | "supplemental">("annual");
   const [isNewNeedsAssessmentModalOpen, setIsNewNeedsAssessmentModalOpen] = useState(false);
 
-  // Mock data
-  const totalAnnualBudget = 845000;
-  const totalSupplementalBudget = 0;
-  const totalCommitted = 0;
-  const totalSpent = 0;
-  const totalRemaining = 845000;
+  // State for data
+  const [lineItems, setLineItems] = useState<LineItem[]>([]);
+  const [needsAssessments, setNeedsAssessments] = useState<NeedsAssessment[]>([]);
+  const [funds, setFunds] = useState<Fund[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const lineItems: LineItem[] = [
-    {
-      id: "1",
-      lineItemId: "LI-2025/810-2K2Q",
-      needsId: "NID-2025/810-2K2Q",
-      title: "HIV/AIDS Awareness Seminar",
-      description: "Area of Advocacy: Adolescent and Youth Health",
-      category: "PPA",
-      budget: 25000.50,
-      remaining: 2032.50,
-      implementationDate: "September 2025",
-      status: "In Progress"
-    },
-    {
-      id: "2",
-      lineItemId: "LI-2025/909-9KCY",
-      needsId: "NID-2025/909-9KCY",
-      title: "Anti-Illegal Drugs Seminar",
-      description: "Area of Advocacy: Peace Building and Security",
-      category: "PPA",
-      budget: 25000.50,
-      remaining: 9032.50,
-      implementationDate: "January 2025",
-      status: "Completed"
-    },
-    {
-      id: "3",
-      lineItemId: "LI-2025/908-LTTC",
-      needsId: "NID-2025/908-RLVJ",
-      title: "Leadership Training Camp",
-      description: "Area of Advocacy: Active Citizenship",
-      category: "PPA",
-      budget: 25000.50,
-      remaining: 2032.50,
-      implementationDate: "March 2025",
-      status: "Completed"
-    },
-    {
-      id: "4",
-      lineItemId: "LI-2025/907-K98N",
-      needsId: "NID-2025/907-K98N",
-      title: "Environmental Cleanup Drive",
-      description: "Area of Advocacy: Agriculture and Environment",
-      category: "PPA",
-      budget: 25000.50,
-      remaining: 2032.50,
-      implementationDate: "April 2025",
-      status: "Completed"
-    },
-    {
-      id: "5",
-      lineItemId: "LI-2025/906-P48T",
-      needsId: "NID-2025/906-P48T",
-      title: "Youth Sports Festival",
-      description: "Area of Advocacy: Sports Development",
-      category: "PPA",
-      budget: 25000.50,
-      remaining: 2032.50,
-      implementationDate: "May 2025",
-      status: "In Progress"
-    }
-  ];
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchAllData();
+  }, []);
 
-  const needsAssessments: NeedsAssessment[] = [
-    {
-      id: "1",
-      needsId: "NID-20250910-26ZQ",
-      evidence: "RIE-12714A521",
-      description: "Description: Aids and HIV cases are rising fast.",
-      areaOfParticipation: "Adolescent and Youth Health",
-      yearIdentified: "2024",
-      proposedSolution: "Conduct an HIV/AIDS Awareness Seminar",
-      status: "In Progress"
-    },
-    {
-      id: "2",
-      needsId: "NID-20250909-W5CY",
-      evidence: "RIE-1271C4C901",
-      description: "Description: Reports show 40% of drug suspects are youth.",
-      areaOfParticipation: "Peace Building and Security",
-      yearIdentified: "2024",
-      proposedSolution: "Conduct an Anti-Illegal Drugs Seminar",
-      status: "Completed"
-    },
-    {
-      id: "3",
-      needsId: "NID-20250908-KUJI",
-      evidence: "RIE-12W735821",
-      description: "Description: Many youth lack exposure to leadership training.",
-      areaOfParticipation: "Active Citizenship",
-      yearIdentified: "2024",
-      proposedSolution: "Conduct a Leadership Training Camp",
-      status: "Completed"
+  const fetchAllData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [lineItemsData, fundsData] = await Promise.all([
+        budgetAPI.getLineItems(),
+        budgetAPI.getFunds(),
+      ]);
+
+      // Debug: Check what data structure you're getting
+      console.log("Line Items Data:", lineItemsData);
+      console.log("First Line Item:", lineItemsData[0]); // <-- Add this
+      console.log("Funds Data:", fundsData);
+      console.log("First Fund:", fundsData[0]); // <-- Add this
+
+      setLineItems(lineItemsData || []);
+      setFunds(fundsData || []);
+      setNeedsAssessments([]);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError(err instanceof Error ? err.message : "Failed to fetch data");
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  // Calculate budget totals from funds
+const totalAnnualBudget = funds
+    .filter(f => f.type === "annual")
+    .reduce((sum, f) => sum + (f.amount ?? 0), 0);
+
+  const totalSupplementalBudget = funds
+    .filter(f => f.type === "supplemental")
+    .reduce((sum, f) => sum + (f.amount ?? 0), 0);
+
+  const totalCommitted = lineItems.reduce((sum, item) => sum + (item.budget ?? 0), 0);
+  const totalSpent = lineItems.reduce((sum, item) => sum + ((item.budget ?? 0) - (item.remaining ?? 0)), 0);
+  const totalRemaining = (totalAnnualBudget + totalSupplementalBudget) - totalCommitted;
 
   const filteredLineItems = lineItems.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.lineItemId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.needsId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchQuery.toLowerCase())
+    (item.title?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+    (item.lineItemId?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+    (item.needsId?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+    (item.category?.toLowerCase() || "").includes(searchQuery.toLowerCase())
   );
 
   const filteredNeedsAssessments = needsAssessments.filter(item =>
-    item.needsId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.evidence.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.proposedSolution.toLowerCase().includes(searchQuery.toLowerCase())
+    (item.needsId?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+    (item.evidence?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+    (item.description?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+    (item.proposedSolution?.toLowerCase() || "").includes(searchQuery.toLowerCase())
   );
-
-  const formatCurrency = (amount: number) => {
-    return `₱${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const formatCurrency = (amount: number | undefined | null) => {
+    const safeAmount = amount ?? 0; // Use 0 if amount is null or undefined
+    return `₱${safeAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -195,25 +151,110 @@ export function BudgetPreparationContent({ darkMode, viewMode }: BudgetPreparati
     }
   };
 
-  const handleAddFundsConfirm = (data: { fiscalYear: string; amount: number; recordId: string }) => {
-    console.log("Adding funds:", data);
-    // Here you would typically update the budget values
+  const handleAddFundsConfirm = async (data: { fiscalYear: string; amount: number; recordId: string }) => {
+    try {
+      await budgetAPI.createFund({
+        fiscalYear: data.fiscalYear,
+        amount: data.amount,
+        type: budgetType,
+        recordId: data.recordId,
+      });
+      
+      // Refresh data
+      await fetchAllData();
+      setIsAddFundsModalOpen(false);
+    } catch (err) {
+      console.error("Error adding funds:", err);
+      alert("Failed to add funds. Please try again.");
+    }
   };
 
-  const handleNewLineItemConfirm = (data: NewLineItemData) => {
-    console.log("Adding new line item:", data);
-    // Here you would typically add the new line item to the list
+  const handleNewLineItemConfirm = async (data: NewLineItemData) => {
+    try {
+      await budgetAPI.createLineItem(data);
+      
+      // Refresh data
+      await fetchAllData();
+      setIsNewLineItemModalOpen(false);
+    } catch (err) {
+      console.error("Error creating line item:", err);
+      alert("Failed to create line item. Please try again.");
+    }
   };
 
-  const handleFundAugmentationConfirm = (data: FundAugmentationData) => {
-    console.log("Adding fund augmentation:", data);
-    // Here you would typically add the fund augmentation to the list
+  const handleFundAugmentationConfirm = async (data: FundAugmentationData) => {
+    try {
+      if (!selectedLineItem) return;
+
+      // Update the line item with augmented funds
+      await budgetAPI.updateLineItem(selectedLineItem.id, {
+        budget: selectedLineItem.budget + data.amount,
+        remaining: selectedLineItem.remaining + data.amount,
+      });
+      
+      // Refresh data
+      await fetchAllData();
+      setIsFundAugmentationModalOpen(false);
+      setSelectedLineItem(null);
+    } catch (err) {
+      console.error("Error augmenting funds:", err);
+      alert("Failed to augment funds. Please try again.");
+    }
   };
 
-  const handleNewNeedsAssessmentConfirm = (data: NeedsAssessmentData) => {
-    console.log("Adding new needs assessment:", data);
-    // Here you would typically add the new needs assessment to the list
+  const handleNewNeedsAssessmentConfirm = async (data: NeedsAssessmentData) => {
+    try {
+      // You'll need to add this endpoint to your API
+      // await needsAssessmentAPI.create(data);
+      console.log("Adding new needs assessment:", data);
+      
+      // For now, just close the modal
+      setIsNewNeedsAssessmentModalOpen(false);
+      
+      // Refresh data when API is available
+      // await fetchAllData();
+    } catch (err) {
+      console.error("Error creating needs assessment:", err);
+      alert("Failed to create needs assessment. Please try again.");
+    }
   };
+
+  const handleUpdateLineItem = async (item: LineItem) => {
+    try {
+      // You would typically open an edit modal here
+      // For now, just logging
+      console.log("Edit line item:", item);
+    } catch (err) {
+      console.error("Error updating line item:", err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#174499] mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading budget data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 mb-4">Error: {error}</p>
+          <button
+            onClick={fetchAllData}
+            className="px-4 py-2 bg-[#3b5998] text-white rounded-lg hover:bg-[#2d4373]"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900">
@@ -346,7 +387,7 @@ export function BudgetPreparationContent({ darkMode, viewMode }: BudgetPreparati
               <div className="bg-white dark:bg-gray-700 p-6 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                 <p className="text-[#155dfc] dark:text-blue-400 mb-3">Total Spent</p>
                 <p className="text-[30px] text-[#101828] dark:text-white mb-2">{formatCurrency(totalSpent)}</p>
-                <p className="text-xs text-[#155dfc] dark:text-blue-400">Total amount spent across all categories (%)S, MOOE, and CO</p>
+                <p className="text-xs text-[#155dfc] dark:text-blue-400">Total amount spent across all categories PS, MOOE, and CO</p>
               </div>
 
               {/* Total Remaining */}
@@ -437,7 +478,10 @@ export function BudgetPreparationContent({ darkMode, viewMode }: BudgetPreparati
                         </td>
                         <td className="px-6 py-6 text-right">
                           <div className="flex items-center justify-center gap-2">
-                            <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors">
+                            <button 
+                              className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                              onClick={() => handleUpdateLineItem(item)}
+                            >
                               <Edit className="w-4 h-4 text-[#364153] dark:text-gray-400" />
                             </button>
                             <button 
@@ -545,54 +589,61 @@ export function BudgetPreparationContent({ darkMode, viewMode }: BudgetPreparati
                                 {item.status}
                               </>
                             )}
-                          </span>
-                        </td>
-                        <td className="px-6 py-6 text-right">
-                          <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors">
-                            <Edit className="w-4 h-4 text-[#3b5998] dark:text-gray-400" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                            {item.status === "Pending" && (
+                              <>
+                                <span className="w-2 h-2 rounded-full bg-gray-400 mr-2">
+                                  </span>
+                            {item.status}
+                          </>
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-6 py-6 text-right">
+                      <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors">
+                        <Edit className="w-4 h-4 text-[#3b5998] dark:text-gray-400" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-                {filteredNeedsAssessments.length === 0 && (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 dark:text-gray-400">No needs assessments found matching your search.</p>
-                  </div>
-                )}
+            {filteredNeedsAssessments.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500 dark:text-gray-400">No needs assessments found matching your search.</p>
               </div>
-            </>
-          )}
-
-          {activeTab === "skmonitor" && (
-            <SKMonitorContent darkMode={darkMode} />
-          )}
-
-          {/* Pagination */}
-          <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              className="flex items-center gap-1 px-3 py-2 text-[#3b5998] hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
-            </button>
-            <button className="px-4 py-2 bg-[#3b5998] text-white rounded">
-              {currentPage}
-            </button>
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              className="flex items-center gap-1 px-3 py-2 text-[#3b5998] hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
-            </button>
+            )}
           </div>
-        </div>
+        </>
+      )}
+
+      {activeTab === "skmonitor" && (
+        <SKMonitorContent darkMode={darkMode} />
+      )}
+
+      {/* Pagination */}
+      <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+          className="flex items-center gap-1 px-3 py-2 text-[#3b5998] hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={currentPage === 1}
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Previous
+        </button>
+        <button className="px-4 py-2 bg-[#3b5998] text-white rounded">
+          {currentPage}
+        </button>
+        <button
+          onClick={() => setCurrentPage(currentPage + 1)}
+          className="flex items-center gap-1 px-3 py-2 text-[#3b5998] hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+        >
+          Next
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
-  );
+  </div>
+</div>
+);
 }
