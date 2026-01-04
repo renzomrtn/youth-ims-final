@@ -179,8 +179,8 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     };
 
     // Transform committees to match project structure
-    const formattedCommittees: Committee[] = committees.map((committee, idx) => ({
-      id: committee.id, // ← Use the ID from the modal
+    const formattedCommittees = committees.map((committee, idx) => ({
+      id: committee.id || `committee-${idx}`,
       name: committee.name,
       chairman: {
         name: committee.chairman,
@@ -220,7 +220,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     const createdProject = await projectsAPI.create(newProject);
 
       // Then update local state
-      setProjects([...projects, newProject]);
+      setProjects([...projects, createdProject]);
       setIsCommitteeMembershipsModalOpen(false);
       setPendingProjectData(null);
     } catch (error) {
