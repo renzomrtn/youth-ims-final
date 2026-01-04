@@ -246,7 +246,7 @@ export function PortalVerifiedExpensesContent({
                           </div>
                         </td>
                         <td className="px-6 py-6 font-semibold text-[#101828] dark:text-gray-200">
-                          {formatCurrency(expense.totalAmountSpent)}
+                          {formatCurrency(expense.totalAmount)}
                         </td>
                         <td className="px-6 py-6 text-sm text-[#4a5565] dark:text-gray-400">
                           <p><span className="font-semibold">From:</span> {formatDisplayDate(expense.expenditurePeriod?.from || "")}</p>
