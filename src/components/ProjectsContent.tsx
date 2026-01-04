@@ -3,6 +3,7 @@ import { Plus, Edit } from "lucide-react";
 import { ProjectMonitorContent } from "./ProjectMonitorContent";
 import { CreateProjectModal } from "./CreateProjectModal";
 import { CommitteeMembershipsModal } from "./CommitteeMembershipsModal";
+import { ProjectConfirmationModal } from "./ProjectConfirmationModal";
 import { CertificateGenerator } from "./CertificateGenerator";
 import { ProjectsByYearContent } from "./ProjectsByYearContent";
 import svgPaths from "../imports/svg-u8mtnpgcn3";
@@ -72,6 +73,8 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
   const [isCommitteeMembershipsModalOpen, setIsCommitteeMembershipsModalOpen] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [pendingCommittees, setPendingCommittees] = useState<Committee[]>([]);
   const [pendingProjectData, setPendingProjectData] = useState<{
     proponent: string;
     lineItemId: string;
@@ -129,13 +132,19 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     setIsCommitteeMembershipsModalOpen(true);
   };
 
-  const handleCommitteeMembershipsConfirm = async (committees: Array<{
+  const handleCommitteeMembershipsConfirm = (committees: Array<{
     id: string;
     name: string;
     chairman: string;
     viceChairman: string;
     members: string[];
   }>) => {
+    setPendingCommittees(committees);  // Store committees
+    setIsCommitteeMembershipsModalOpen(false);  // Close committee modal
+    setIsConfirmationModalOpen(true);
+  };
+
+  const handleFinalConfirmation = async () => {
     if (!pendingProjectData) return;
 
     const lineItemDetails = [
@@ -167,7 +176,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
         .toUpperCase();
     };
 
-    const formattedCommittees = committees.map((committee, idx) => ({
+    const formattedCommittees = pendingCommittees.map((committee, idx) => ({
       id: committee.id || `committee-${idx}`,
       name: committee.name,
       chairman: {
@@ -187,7 +196,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
       }))
     }));
 
-    const newProject: Project = {
+    const newProject = {
       proponent: pendingProjectData.proponent,
       title: pendingProjectData.projectTitle,
       lineItemId: pendingProjectData.lineItemId,
@@ -206,12 +215,24 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
     try {
       const createdProject = await projectsAPI.create(newProject);
       setProjects([...projects, createdProject]);
-      setIsCommitteeMembershipsModalOpen(false);
+      setIsConfirmationModalOpen(false);
       setPendingProjectData(null);
+      setPendingCommittees([]);
     } catch (error) {
       console.error("Error creating project:", error);
       alert("Failed to create project. Please try again.");
     }
+  };
+
+  const handleConfirmationClose = () => {
+    setIsConfirmationModalOpen(false);
+    setPendingProjectData(null);
+    setPendingCommittees([]);
+  };
+
+  const handleConfirmationPrevious = () => {
+    setIsConfirmationModalOpen(false);
+    setIsCommitteeMembershipsModalOpen(true);
   };
 
   const handleCommitteeMembershipsClose = () => {
@@ -571,6 +592,18 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
           onClose={handleCommitteeMembershipsClose}
           onConfirm={handleCommitteeMembershipsConfirm}
           onPrevious={handleCommitteeMembershipsPrevious}
+        />
+      )}
+      {/* Confirmation Modal */}
+      {isConfirmationModalOpen && pendingProjectData && (
+        <ProjectConfirmationModal
+          isOpen={isConfirmationModalOpen}
+          onClose={handleConfirmationClose}
+          onConfirm={handleFinalConfirmation}
+          onPrevious={handleConfirmationPrevious}
+          projectData={pendingProjectData}
+          committees={pendingCommittees}
+          darkMode={darkMode}
         />
       )}
     </div>
