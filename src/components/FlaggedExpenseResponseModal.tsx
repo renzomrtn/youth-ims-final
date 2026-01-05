@@ -44,6 +44,10 @@ export function FlaggedExpenseResponseModal({
   const fieldsToCorrect = flaggingData.fieldsToCorrect;
   const currentCorrections = allCorrections[currentExpense.id] || { explanation: "" };
 
+  const formatCurrency = (amount: number) => {
+    return `₱${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
   const updateCurrentCorrections = (updates: Partial<typeof currentCorrections>) => {
     setAllCorrections(prev => ({
       ...prev,
@@ -52,11 +56,6 @@ export function FlaggedExpenseResponseModal({
         ...updates
       }
     }));
-  };
-
-  const handleConfirm = () => {
-    // Show the confirmation sub-modal instead of submitting immediately
-    setShowConfirmation(true);
   };
 
   const finalSubmit = () => {
@@ -71,17 +70,13 @@ export function FlaggedExpenseResponseModal({
       };
     });
 
-    const correctionData: CorrectionData = {
+    onConfirm({
       lineItem: flaggingData.lineItem,
       corrections
-    };
+    });
     
-    onConfirm(correctionData);
-    // Reset state
-    setAllCorrections({});
-    setSelectedExpenseIndex(0);
-    setShowConfirmation(false);
-    onClose();
+    // Reset and Close
+    handleCancel();
   };
 
   const handleCancel = () => {
@@ -91,35 +86,17 @@ export function FlaggedExpenseResponseModal({
     onClose();
   };
 
-  const formatCurrency = (amount: number) => {
-    return `₱${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-3xl w-[788px] max-h-[90vh] overflow-y-auto shadow-xl relative">
-        
-        {showConfirmation && (
-  <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/30">
-    <div className="bg-white rounded-[24px] w-[788px] max-h-[90vh] overflow-auto shadow-2xl relative">
-      
-      {/* Header */}
-      <div className="bg-[#334870] h-[88px] rounded-t-[24px] relative">
-        <h2 className="absolute left-[40px] top-[27px] text-[24px] font-bold text-white">
-          Confirm Corrections
-        </h2>
-        <button
-          onClick={() => setShowConfirmation(false)}
-          className="absolute right-[32px] top-[32px] text-white hover:opacity-80"
-        >
+  // --- SUB-COMPONENT: CONFIRMATION VIEW ---
+  const ConfirmationView = () => (
+    <div className="flex flex-col h-full">
+      <div className="bg-[#334870] px-10 py-6 rounded-t-3xl relative">
+        <h2 className="text-2xl font-bold text-white">Confirm Corrections</h2>
+        <button onClick={() => setShowConfirmation(false)} className="absolute right-8 top-7 text-white hover:opacity-80">
           <X className="w-6 h-6" />
         </button>
       </div>
 
-      {/* Content */}
-      <div className="p-[40px] pb-[32px]">
-
-        {/* Info Banner */}
+      <div className="p-10 overflow-y-auto">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex gap-3">
           <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
           <p className="text-blue-800 text-sm">
@@ -127,61 +104,34 @@ export function FlaggedExpenseResponseModal({
           </p>
         </div>
 
-        {/* Line Item */}
         <section className="mb-6">
-          <h3 className="text-[20px] font-semibold mb-3">Line Item</h3>
-          <div className="bg-gray-50 rounded-lg p-4 text-sm">
-            {flaggingData.lineItem}
-          </div>
+          <h3 className="text-lg font-semibold mb-3">Line Item</h3>
+          <div className="bg-gray-50 rounded-lg p-4 text-sm">{flaggingData.lineItem}</div>
         </section>
 
-        {/* Corrections Summary */}
         <section className="mb-6">
-          <h3 className="text-[20px] font-semibold mb-4">
-            Corrections ({flaggingData.selectedExpenses.length})
-          </h3>
-
+          <h3 className="text-lg font-semibold mb-4">Corrections ({flaggingData.selectedExpenses.length})</h3>
           <div className="space-y-4">
             {flaggingData.selectedExpenses.map((expense, index) => {
               const correction = allCorrections[expense.id];
-
               return (
-                <div
-                  key={expense.id}
-                  className="bg-gray-50 border border-gray-200 rounded-lg p-4"
-                >
-                  <h4 className="font-semibold text-[#174499] mb-3">
-                    Expense {index + 1}
-                  </h4>
-
-                  <div className="grid grid-cols-[160px_1fr] gap-y-2 text-sm">
+                <div key={expense.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm">
+                  <h4 className="font-semibold text-[#174499] mb-3">Expense {index + 1}</h4>
+                  <div className="grid grid-cols-[160px_1fr] gap-y-2">
                     <span className="font-semibold text-gray-700">Original Particular:</span>
                     <span>{expense.particular}</span>
-
                     <span className="font-semibold text-gray-700">Original Amount:</span>
                     <span>{formatCurrency(expense.amount)}</span>
-
+                    
                     {correction?.particular && (
-                      <>
-                        <span className="font-semibold text-gray-700">Corrected Particular:</span>
-                        <span>{correction.particular}</span>
-                      </>
+                      <><span className="font-semibold text-gray-700">Corrected Particular:</span><span>{correction.particular}</span></>
                     )}
-
                     {correction?.amount && (
-                      <>
-                        <span className="font-semibold text-gray-700">Corrected Amount:</span>
-                        <span>{formatCurrency(parseFloat(correction.amount))}</span>
-                      </>
+                      <><span className="font-semibold text-gray-700">Corrected Amount:</span><span>{formatCurrency(parseFloat(correction.amount))}</span></>
                     )}
-
                     {correction?.dateOfExpense && (
-                      <>
-                        <span className="font-semibold text-gray-700">Corrected Date:</span>
-                        <span>{correction.dateOfExpense}</span>
-                      </>
+                      <><span className="font-semibold text-gray-700">Corrected Date:</span><span>{correction.dateOfExpense}</span></>
                     )}
-
                     <span className="font-semibold text-gray-700">Explanation:</span>
                     <span>{correction?.explanation || "—"}</span>
                   </div>
@@ -191,179 +141,155 @@ export function FlaggedExpenseResponseModal({
           </div>
         </section>
 
-        {/* Buttons */}
-        <div className="flex justify-end gap-[20px] mt-8">
+        <div className="flex justify-end gap-4 mt-8">
           <button
             onClick={() => setShowConfirmation(false)}
-            className="bg-[rgba(172,172,172,0.2)] border border-[#acacac] h-[45px] w-[110px] rounded-[6px] font-black text-[#606060] hover:bg-[rgba(172,172,172,0.3)]"
+            className="px-8 py-2.5 border border-gray-300 rounded-md font-bold text-gray-600 hover:bg-gray-50"
           >
             Previous
           </button>
           <button
             onClick={finalSubmit}
-            className="bg-[#174499] h-[45px] w-[110px] rounded-[6px] font-black text-white hover:bg-[#0f2f6b]"
+            className="px-8 py-2.5 bg-[#174499] text-white rounded-md font-bold hover:bg-[#0f2f6b]"
           >
             Confirm
           </button>
         </div>
       </div>
     </div>
-  </div>
-)}
+  );
 
-
-        {/* Header */}
-        <div className="bg-[#e06c6e] px-10 py-5 rounded-t-3xl relative">
-          <h2 className="text-2xl text-white mb-1">Flagged Expense - Action Required</h2>
-          <p className="text-white opacity-90">Line Item: {flaggingData.lineItem}</p>
-          <button
-            onClick={handleCancel}
-            className="absolute right-8 top-8 text-white hover:bg-white/10 rounded-full p-1 transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="px-10 py-6">
-          {/* Multiple expenses selector */}
-          {flaggingData.selectedExpenses.length > 1 && (
-            <div className="mb-6">
-              <label className="block text-black mb-2">
-                Responding to expense {selectedExpenseIndex + 1} of {flaggingData.selectedExpenses.length}
-              </label>
-              <div className="flex gap-2">
-                {flaggingData.selectedExpenses.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedExpenseIndex(index)}
-                    className={`px-4 py-2 rounded-md transition-colors ${
-                      selectedExpenseIndex === index
-                        ? "bg-[#174499] text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                  >
-                    Expense {index + 1}
-                  </button>
-                ))}
-              </div>
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl w-full max-w-[788px] max-h-[90vh] overflow-hidden shadow-xl relative">
+        
+        {showConfirmation ? (
+          <ConfirmationView />
+        ) : (
+          <>
+            {/* Main Form Header */}
+            <div className="bg-[#e06c6e] px-10 py-5 rounded-t-3xl relative">
+              <h2 className="text-2xl text-white mb-1">Flagged Expense - Action Required</h2>
+              <p className="text-white opacity-90 text-sm">Line Item: {flaggingData.lineItem}</p>
+              <button onClick={handleCancel} className="absolute right-8 top-8 text-white hover:bg-white/10 rounded-full p-1">
+                <X className="w-6 h-6" />
+              </button>
             </div>
-          )}
 
-          {/* Original Submission */}
-          <div className="mb-6">
-            <label className="block text-black mb-2">Original Submission:</label>
-            <div className="border border-[#939393] rounded-md p-5 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="font-semibold text-black mb-1">Particular:</p>
-                  <p className="text-black">{currentExpense.particular}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-black mb-1">Amount:</p>
-                  <p className="text-black">{formatCurrency(currentExpense.amount)}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="font-semibold text-black mb-1">Date of Expense:</p>
-                  <p className="text-black">{currentExpense.date}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-black mb-1">Attachment:</p>
-                  <FileImage className="w-4 h-4 text-[#6d798e]" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Verifier's Remarks */}
-          <div className="mb-6">
-            <label className="block text-black mb-2">Verifier's Remarks:</label>
-            <div className="bg-[#ffeded] border border-[#ff5858] rounded-md p-5">
-              <p className="text-black mb-3">{flaggingData.remarks}</p>
-              <p className="text-black text-sm">
-                <span className="font-semibold">Flagged by:</span> John Doakes • December 13, 2025
-              </p>
-            </div>
-          </div>
-
-          {/* Correction Fields */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            {fieldsToCorrect.amount && (
-              <>
-                <div>
-                  <label className="block text-black mb-2">Original Amount:</label>
-                  <div className="bg-[#eee] border border-[#939393] rounded-md px-4 py-2">
-                    <p className="text-[#515151]">{formatCurrency(currentExpense.amount)}</p>
+            {/* Main Form Content */}
+            <div className="px-10 py-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+              {flaggingData.selectedExpenses.length > 1 && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2">
+                    Responding to expense {selectedExpenseIndex + 1} of {flaggingData.selectedExpenses.length}
+                  </label>
+                  <div className="flex gap-2 flex-wrap">
+                    {flaggingData.selectedExpenses.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedExpenseIndex(index)}
+                        className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                          selectedExpenseIndex === index ? "bg-[#174499] text-white" : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                        }`}
+                      >
+                        Expense {index + 1}
+                      </button>
+                    ))}
                   </div>
                 </div>
+              )}
+
+              <div className="mb-6">
+                <label className="block font-semibold mb-2">Original Submission:</label>
+                <div className="border border-gray-300 rounded-lg p-4 space-y-3 bg-gray-50">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div><p className="text-gray-500">Particular</p><p className="font-medium">{currentExpense.particular}</p></div>
+                    <div><p className="text-gray-500">Amount</p><p className="font-medium">{formatCurrency(currentExpense.amount)}</p></div>
+                    <div><p className="text-gray-500">Date</p><p className="font-medium">{currentExpense.date}</p></div>
+                    <div><p className="text-gray-500">Attachment</p><FileImage className="w-4 h-4 text-gray-400" /></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block font-semibold mb-2">Verifier's Remarks:</label>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-900 mb-2">{flaggingData.remarks}</p>
+                </div>
+              </div>
+
+              {/* Correction Inputs */}
+              <div className="space-y-4">
+                {fieldsToCorrect.amount && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm mb-1">Original Amount</label>
+                      <div className="bg-gray-100 border border-gray-300 rounded-md px-4 py-2 text-gray-500">
+                        {formatCurrency(currentExpense.amount)}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">Corrected Amount</label>
+                      <input
+                        type="number"
+                        value={currentCorrections.amount || ""}
+                        onChange={(e) => updateCurrentCorrections({ amount: e.target.value })}
+                        className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-[#174499] outline-none"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {fieldsToCorrect.particular && (
+                  <div>
+                    <label className="block text-sm mb-1">Corrected Particular</label>
+                    <input
+                      type="text"
+                      value={currentCorrections.particular || ""}
+                      onChange={(e) => updateCurrentCorrections({ particular: e.target.value })}
+                      className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-[#174499] outline-none"
+                    />
+                  </div>
+                )}
+
+                {fieldsToCorrect.dateOfExpense && (
+                  <div>
+                    <label className="block text-sm mb-1">Corrected Date</label>
+                    <input
+                      type="date"
+                      value={currentCorrections.dateOfExpense || ""}
+                      onChange={(e) => updateCurrentCorrections({ dateOfExpense: e.target.value })}
+                      className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-[#174499] outline-none"
+                    />
+                  </div>
+                )}
+
                 <div>
-                  <label className="block text-black mb-2">Corrected Amount:</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={currentCorrections.amount || ""}
-                    onChange={(e) => updateCurrentCorrections({ amount: e.target.value })}
-                    className="w-full border border-[#939393] rounded-md px-4 py-2 focus:outline-none focus:border-[#174499]"
-                    placeholder="₱0.00"
+                  <label className="block text-sm mb-1">Explanation</label>
+                  <textarea
+                    value={currentCorrections.explanation}
+                    onChange={(e) => updateCurrentCorrections({ explanation: e.target.value })}
+                    className="w-full h-32 border border-gray-300 rounded-md p-3 resize-none focus:ring-2 focus:ring-[#174499] outline-none"
+                    placeholder="Provide details for this correction..."
                   />
                 </div>
-              </>
-            )}
-          </div>
+              </div>
 
-          {fieldsToCorrect.particular && (
-            <div className="mb-6">
-              <label className="block text-black mb-2">Corrected Particular:</label>
-              <input
-                type="text"
-                value={currentCorrections.particular || ""}
-                onChange={(e) => updateCurrentCorrections({ particular: e.target.value })}
-                className="w-full border border-[#939393] rounded-md px-4 py-2 focus:outline-none focus:border-[#174499]"
-                placeholder="Enter corrected particular"
-              />
+              <div className="flex justify-end gap-4 mt-8">
+                <button onClick={handleCancel} className="px-8 py-2.5 text-red-600 font-semibold hover:bg-red-50 rounded-md">
+                  Cancel
+                </button>
+                <button
+                  onClick={() => setShowConfirmation(true)}
+                  className="px-8 py-2.5 bg-[#174499] text-white rounded-md font-semibold hover:bg-[#0f2d66]"
+                >
+                  Confirm
+                </button>
+              </div>
             </div>
-          )}
-
-          {fieldsToCorrect.dateOfExpense && (
-            <div className="mb-6">
-              <label className="block text-black mb-2">Corrected Date of Expense:</label>
-              <input
-                type="date"
-                value={currentCorrections.dateOfExpense || ""}
-                onChange={(e) => updateCurrentCorrections({ dateOfExpense: e.target.value })}
-                className="w-full border border-[#939393] rounded-md px-4 py-2 focus:outline-none focus:border-[#174499]"
-              />
-            </div>
-          )}
-
-          <div className="mb-6">
-            <label className="block text-black mb-2">Explanation for Correction:</label>
-            <textarea
-              value={currentCorrections.explanation}
-              onChange={(e) => updateCurrentCorrections({ explanation: e.target.value })}
-              className="w-full h-[197px] border border-[#939393] rounded-md p-3 resize-none focus:outline-none focus:border-[#174499]"
-              placeholder="Explain why the correction was made..."
-            />
-          </div>
-
-          {/* Buttons */}
-          <div className="flex justify-end gap-4">
-            <button
-              onClick={handleCancel}
-              className="px-6 py-3 bg-[rgba(224,108,110,0.2)] border border-[#e06c6e] text-[#e06c6e] rounded-md hover:bg-[rgba(224,108,110,0.3)] transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirm}
-              className="px-6 py-3 bg-[#174499] text-white rounded-md hover:bg-[#0f2d66] transition-colors"
-            >
-              Confirm
-            </button>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
