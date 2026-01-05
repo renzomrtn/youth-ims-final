@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, Plus, ChevronLeft, Eye, Edit, FileText } from "lucide-react";
 import { UploadDocumentModal } from "./UploadDocumentModal";
+import { PDFViewerModal } from "./PDFViewerModal";
 import { archivesAPI } from "../utils/database";
 
 interface ArchivesResolutionsContentProps {
@@ -35,16 +36,15 @@ export function ArchivesResolutionsContent({
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isPDFViewerOpen, setIsPDFViewerOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<Resolution | null>(null);
   const [resolutions, setResolutions] = useState<Resolution[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Default years - always show these even if no documents exist
   const defaultYears = ["2026", "2025", "2024", "2023", "2022"];
   const [availableYears, setAvailableYears] = useState<string[]>(defaultYears);
 
   const handleViewDocument = (resolution: Resolution) => {
-    // console.log('Attempting to view document:', resolution);
-    
     if (!resolution.fileData) {
       alert('This document does not have an attached file. It may have been uploaded before file storage was implemented.');
       return;
@@ -55,35 +55,8 @@ export function ArchivesResolutionsContent({
       return;
     }
 
-    try {
-      // Remove any whitespace from base64 string
-      const base64Data = resolution.fileData.trim();
-      
-      // Decode base64 to binary
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: resolution.fileMimeType });
-      
-      // console.log('Blob created:', blob.size, 'bytes, type:', blob.type);
-      
-      // Create URL and open in new tab
-      const url = URL.createObjectURL(blob);
-      const newWindow = window.open(url, '_blank');
-      
-      if (!newWindow) {
-        alert('Pop-up blocked. Please allow pop-ups for this site to view documents.');
-      }
-      
-      // Clean up after a delay
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (error) {
-      console.error('Error viewing document:', error);
-      alert('Failed to open document. The file may be corrupted or in an invalid format.');
-    }
+    setSelectedDocument(resolution);
+    setIsPDFViewerOpen(true);
   };
 
   useEffect(() => {
@@ -95,16 +68,12 @@ export function ArchivesResolutionsContent({
       setLoading(true);
       const docs = await archivesAPI.getDocuments('resolutions');
       
-      // Extract year from date or year field for each document
       const docsWithYear = docs.map((doc: any) => ({
         ...doc,
         year: doc.year || (doc.date ? doc.date.split('-')[0] : new Date().getFullYear().toString())
       }));
       
-      // Extract unique years from documents
       const docYears = Array.from(new Set(docsWithYear.map((doc: any) => doc.year).filter(Boolean)));
-      
-      // Combine with default years and remove duplicates, then sort descending
       const allYears = Array.from(new Set([...defaultYears, ...docYears])).sort((a, b) => b.localeCompare(a));
       setAvailableYears(allYears);
       
@@ -116,7 +85,6 @@ export function ArchivesResolutionsContent({
     }
   }
 
-  // Filter resolutions by selected year and search query
   const filteredResolutions = resolutions
     .filter(resolution => resolution.year === selectedYear)
     .filter(resolution =>
@@ -174,7 +142,6 @@ export function ArchivesResolutionsContent({
           {/* Header */}
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-4 mb-6">
-              {/* Category Icon */}
               <div className="w-12 h-12 rounded-[10px] flex items-center justify-center p-2.5"
                 style={{ background: "linear-gradient(135deg, rgb(43, 127, 255) 0%, rgb(21, 93, 252) 100%)" }}
               >
@@ -196,7 +163,6 @@ export function ArchivesResolutionsContent({
                 />
               </div>
 
-              {/* Add Document Button - Only visible for current year */}
               {selectedYear === "2026" && (
                 <button 
                   onClick={() => setIsUploadModalOpen(true)}
@@ -214,24 +180,12 @@ export function ArchivesResolutionsContent({
             <table className="w-full min-w-max">
               <thead className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                 <tr>
-                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200 w-20">
-                    Number
-                  </th>
-                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200 w-48">
-                    Record ID
-                  </th>
-                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200">
-                    Title
-                  </th>
-                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200 w-80">
-                    Document Details
-                  </th>
-                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200 w-32">
-                    File
-                  </th>
-                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200 w-28">
-                    Action
-                  </th>
+                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200 w-20">Number</th>
+                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200 w-48">Record ID</th>
+                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200">Title</th>
+                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200 w-80">Document Details</th>
+                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200 w-32">File</th>
+                  <th className="px-6 py-4 text-left text-[#364153] dark:text-gray-200 w-28">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -328,6 +282,21 @@ export function ArchivesResolutionsContent({
         category="resolutions"
         onUploadSuccess={fetchResolutions}
       />
+
+      {/* PDF Viewer Modal */}
+      {selectedDocument && (
+        <PDFViewerModal
+          isOpen={isPDFViewerOpen}
+          onClose={() => {
+            setIsPDFViewerOpen(false);
+            setSelectedDocument(null);
+          }}
+          fileData={selectedDocument.fileData || ''}
+          fileMimeType={selectedDocument.fileMimeType || ''}
+          fileName={selectedDocument.title}
+          darkMode={darkMode}
+        />
+      )}
     </div>
   );
 }

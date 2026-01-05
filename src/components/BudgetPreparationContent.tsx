@@ -381,7 +381,7 @@ const totalAnnualBudget = funds
             <div className="grid grid-cols-3 gap-7">
               {/* Total Committed */}
               <div className="bg-white dark:bg-gray-700 p-6 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
-                <p className="text-[#155dfc] dark:text-blue-400 mb-3">Total Committed</p>
+                <p className="text-[#155dfc] dark:text-blue-400 mb-3">Total Priority</p>
                 <p className="text-[30px] text-[#101828] dark:text-white mb-2">{formatCurrency(totalCommitted)}</p>
                 <p className="text-xs text-[#155dfc] dark:text-blue-400">Promised amounts per Line Items</p>
               </div>

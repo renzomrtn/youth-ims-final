@@ -70,6 +70,12 @@ export function CertificateGenerator({
 
   const certificateRef = useRef<HTMLDivElement>(null);
 
+  // Debug: Log projects and selectedProject
+  useEffect(() => {
+    console.log('Projects:', projects);
+    console.log('Selected Project:', selectedProject);
+  }, [projects, selectedProject]);
+
   // Get the line item ID for the selected project
   const selectedProjectData = projects.find(p => p.id === selectedProject);
   const lineItemId = selectedProjectData?.lineItemId || '';
@@ -84,7 +90,7 @@ export function CertificateGenerator({
         const text = event.target?.result as string;
         const lines = text.split('\n');
         const names: string[] = [];
-        
+
         // Skip header row and parse names
         for (let i = 1; i < lines.length; i++) {
           const columns = lines[i].split(',');
@@ -92,9 +98,9 @@ export function CertificateGenerator({
             const firstName = columns[0]?.trim();
             const lastName = columns[1]?.trim();
             const middleName = columns[2]?.trim() || '';
-            
+
             if (firstName && lastName) {
-              const fullName = middleName 
+              const fullName = middleName
                 ? `${firstName} ${middleName} ${lastName}`
                 : `${firstName} ${lastName}`;
               names.push(fullName);
@@ -142,7 +148,7 @@ export function CertificateGenerator({
       const rect = certificateRef.current.getBoundingClientRect();
       const newX = e.clientX - rect.left - dragOffset.x;
       const newY = e.clientY - rect.top - dragOffset.y;
-      
+
       setNamePosition(prev => ({
         ...prev,
         x: Math.max(0, Math.min(newX, rect.width - prev.width)),
@@ -151,7 +157,7 @@ export function CertificateGenerator({
     } else if (isResizing && certificateRef.current) {
       const rect = certificateRef.current.getBoundingClientRect();
       const newWidth = e.clientX - rect.left - namePosition.x;
-      
+
       setNamePosition(prev => ({
         ...prev,
         width: Math.max(100, Math.min(newWidth, rect.width - prev.x))
@@ -205,24 +211,32 @@ export function CertificateGenerator({
       {/* Project and Upload Section */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex gap-6 items-start">
-          {/* Left Column - Project Selection */}
+          {/* Project Selection */}
           <div className="flex flex-col gap-3 w-[220px]">
             <div>
               <label className="text-black dark:text-white block mb-1">Project</label>
               <select
-                value={selectedProject || ""}
-                onChange={(e) => onProjectChange(e.target.value ? Number(e.target.value) : null)}
+                value={selectedProject === null ? "" : String(selectedProject)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "") {
+                    onProjectChange(null);
+                  } else {
+                    const numValue = parseInt(value, 10);
+                    onProjectChange(numValue);
+                  }
+                }}
                 className="w-full h-[38px] px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white"
               >
                 <option value="">Select a project</option>
                 {projects.map((project) => (
-                  <option key={project.id} value={project.id}>
+                  <option key={project.id} value={String(project.id)}>
                     {project.title}
                   </option>
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="text-gray-600 dark:text-gray-400 text-sm block mb-1">Line Item ID:</label>
               <div className="w-full h-[38px] px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center">
@@ -232,11 +246,10 @@ export function CertificateGenerator({
 
             <button
               disabled={!showPreview}
-              className={`w-full px-4 py-2 rounded-lg mt-2 ${
-                showPreview
+              className={`w-full px-4 py-2 rounded-lg mt-2 ${showPreview
                   ? "bg-[#3b5998] hover:bg-[#2d4373] text-white"
                   : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-600 cursor-not-allowed"
-              }`}
+                }`}
             >
               Generate
             </button>
@@ -245,11 +258,10 @@ export function CertificateGenerator({
               <button
                 onClick={handlePrevious}
                 disabled={!showPreview || currentNameIndex === 0}
-                className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg border ${
-                  showPreview && currentNameIndex > 0
+                className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg border ${showPreview && currentNameIndex > 0
                     ? "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
                     : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
                   <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
@@ -259,11 +271,10 @@ export function CertificateGenerator({
               <button
                 onClick={handleNext}
                 disabled={!showPreview || currentNameIndex >= parsedNames.length - 1}
-                className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg border ${
-                  showPreview && currentNameIndex < parsedNames.length - 1
+                className={`flex-1 flex items-center justify-center gap-1 px-3 py-2 rounded-lg border ${showPreview && currentNameIndex < parsedNames.length - 1
                     ? "bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
                     : "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 <span className="text-sm">Next</span>
                 <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
@@ -296,11 +307,10 @@ export function CertificateGenerator({
               />
               <label
                 htmlFor="csv-upload"
-                className={`text-xs px-3 py-1.5 rounded-lg cursor-pointer ${
-                  selectedProject
+                className={`text-xs px-3 py-1.5 rounded-lg cursor-pointer ${selectedProject
                     ? "bg-white dark:bg-gray-600 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-500"
                     : "bg-gray-300 dark:bg-gray-800 text-gray-500 dark:text-gray-600 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 {csvFile ? csvFile.name.substring(0, 20) + (csvFile.name.length > 20 ? '...' : '') : "Choose File"}
               </label>
@@ -325,11 +335,10 @@ export function CertificateGenerator({
               />
               <label
                 htmlFor="template-upload"
-                className={`text-xs px-3 py-1.5 rounded-lg cursor-pointer ${
-                  selectedProject
+                className={`text-xs px-3 py-1.5 rounded-lg cursor-pointer ${selectedProject
                     ? "bg-white dark:bg-gray-600 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-500"
                     : "bg-gray-300 dark:bg-gray-800 text-gray-500 dark:text-gray-600 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 {templateFile ? templateFile.name.substring(0, 20) + (templateFile.name.length > 20 ? '...' : '') : "Choose File"}
               </label>
@@ -449,7 +458,7 @@ export function CertificateGenerator({
                   >
                     {currentName}
                   </p>
-                  
+
                   {/* Resize Handle */}
                   <div
                     onMouseDown={handleMouseDownOnResize}

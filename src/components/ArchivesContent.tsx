@@ -44,7 +44,7 @@ export function ArchivesContent({ darkMode, viewMode, onSubPageChange, customCat
         setDocumentCounts({
           resolutions: resolutionsDocs.length,
           ordinances: ordinancesDocs.length,
-          minutes: minutesDocs.length,
+          minutes: minutesDocs.length, 
         });
       } catch (error) {
         console.error('Error fetching document counts:', error);

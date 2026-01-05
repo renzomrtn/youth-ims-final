@@ -311,7 +311,7 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
               aria-label="Search projects"
             />
             <button 
-              className="flex items-center gap-2 px-4 py-2 bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-lg transition-colors" 
+              className="flex items-center gap-2 px-4 py-2 bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2" 
               onClick={() => setIsCreateProjectModalOpen(true)}
               aria-label="Create new project"
             >
@@ -407,16 +407,16 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${project.expenseStatus === "Verified"
-                        ? "bg-[#d1fae5] border-[#6ee7b7] text-[#047857]"
+                        ? "bg-[#fe9a00] border-[#fe9a00] text-[#047857]"
                         : project.expenseStatus === "Pending"
-                          ? "bg-gray-100 border-gray-300 text-gray-600"
-                          : "bg-[#fff7f7] border-[#fe0000] text-[#e10000]"
+                          ? "bg-[#fffbeb] border-[#fe9a00] text-[#e17100]"
+                          : "bg-[#fffbeb] border-[#fe9a00] text-[#e10000]"
                         }`} role="status" aria-label={`Expense verification: ${project.expenseStatus}`}>
                         <span className={`w-2 h-2 rounded-full mr-2 ${project.expenseStatus === "Verified"
-                          ? "bg-[#10b981]"
+                          ? "bg-[#fe9a00]"
                           : project.expenseStatus === "Pending"
-                            ? "bg-gray-400"
-                            : "bg-[#fe0000]"
+                            ? "bg-[#fe9a00]"
+                            : "bg-[#fe9a00]"
                           }`} aria-hidden="true" />
                         {project.expenseStatus}
                       </span>
@@ -553,7 +553,8 @@ export function ProjectsContent({ darkMode, viewMode, onSubPageChange, onOpenKan
             <li key={tab} role="presentation">
               <button
                 onClick={() => handleTabChange(tab.toLowerCase().replace(/\s+/g, ""))}
-                className={`py-4 relative ${activeTab === tab.toLowerCase().replace(/\s+/g, "")
+                className={`py-4 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-inset rounded ${
+                activeTab === tab.toLowerCase().replace(/\s+/g, "")
                   ? "text-[#174499] dark:text-blue-400"
                   : "text-[#606060] dark:text-gray-400"
                   }`}
