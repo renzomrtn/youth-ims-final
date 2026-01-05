@@ -141,6 +141,20 @@ export const budgetAPI = {
     method: 'POST',
     body: JSON.stringify(data),
   }),
+  
+  // new methods for Needs Assessments
+  getNeedsAssessments: async () => fetchFromServer('/budget/needs-assessments'),
+  createNeedsAssessment: async (data: any) => fetchFromServer('/budget/needs-assessments', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  updateNeedsAssessment: async (id: string, data: any) => fetchFromServer(`/budget/needs-assessments/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  deleteNeedsAssessment: async (id: string) => fetchFromServer(`/budget/needs-assessments/${id}`, {
+    method: 'DELETE',
+  }),
 };
 
 // Expense Verification API

@@ -16,7 +16,7 @@ interface BudgetData {
 }
 
 export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
-  const [selectedYear, setSelectedYear] = useState("2025");
+  const [selectedYear, setSelectedYear] = useState("2026");
   const [selectedBarangay, setSelectedBarangay] = useState("All");
   const [barangaySearchOpen, setBarangaySearchOpen] = useState(false);
   const [barangaySearchQuery, setBarangaySearchQuery] = useState("");
@@ -39,127 +39,243 @@ export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
 
   // Sample data that varies by year and barangay
   const budgetDataByYearAndBarangay: Record<string, Record<string, BudgetData>> = {
-    "2025": {
+    "2026": {
       "All": {
-        annualBudget: 0,
-        supplementalBudget: 0,
-        committed: 0,
-        spent: 0,
-        remaining: 0,
+        annualBudget: 1200000,
+        supplementalBudget: 150000,
+        committed: 850000,
+        spent: 420000,
+        remaining: 500000,
         pieData: [
-          { name: "Health", value: 11.2, color: "#EE82EE" },
-          { name: "Education", value: 17.2, color: "#5DADE2" },
-          { name: "Environment", value: 7.7, color: "#2ECC71" },
-          { name: "Global Mobility", value: 4.1, color: "#F39C12" },
-          { name: "Active Citizenship", value: 8.9, color: "#BB8FCE" },
-          { name: "Governance", value: 6.5, color: "#E74C3C" },
-          { name: "Social Equity & Inclusion", value: 5.7, color: "#3498DB" },
-          { name: "Peacebuilding & Security", value: 5.0, color: "#95A5A6" },
-          { name: "Economic Empowerment", value: 10.1, color: "#16A085" },
-          { name: "General Administrative Expense", value: 23.7, color: "#F1C40F" }
+          { name: "Adolescent and Youth Health", value: 52500, color: "#EE82EE" },
+          { name: "Quality Education", value: 84000, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 37800, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 21000, color: "#F39C12" },
+          { name: "Active Citizenship", value: 42000, color: "#BB8FCE" },
+          { name: "Good Governance", value: 31500, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 25200, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 21000, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 42000, color: "#16A085" },
+          { name: "General Administrative Expense", value: 63000, color: "#F1C40F" }
         ]
       },
       "Barangay 1": {
-        annualBudget: 150000,
-        supplementalBudget: 25000,
-        committed: 80000,
-        spent: 45000,
-        remaining: 50000,
+        annualBudget: 400000,
+        supplementalBudget: 50000,
+        committed: 280000,
+        spent: 135000,
+        remaining: 170000,
         pieData: [
-          { name: "Health", value: 11.2, color: "#EE82EE" },
-          { name: "Education", value: 17.2, color: "#5DADE2" },
-          { name: "Environment", value: 7.7, color: "#2ECC71" },
-          { name: "Global Mobility", value: 4.1, color: "#F39C12" },
-          { name: "Active Citizenship", value: 8.9, color: "#BB8FCE" },
-          { name: "Governance", value: 6.5, color: "#E74C3C" },
-          { name: "Social Equity & Inclusion", value: 5.7, color: "#3498DB" },
-          { name: "Peacebuilding & Security", value: 5.0, color: "#95A5A6" },
-          { name: "Economic Empowerment", value: 10.1, color: "#16A085" },
-          { name: "General Administrative Expense", value: 23.7, color: "#F1C40F" }
+          { name: "Adolescent and Youth Health", value: 16875, color: "#EE82EE" },
+          { name: "Quality Education", value: 27000, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 12150, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 6750, color: "#F39C12" },
+          { name: "Active Citizenship", value: 13500, color: "#BB8FCE" },
+          { name: "Good Governance", value: 10125, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 8100, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 6750, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 13500, color: "#16A085" },
+          { name: "General Administrative Expense", value: 20250, color: "#F1C40F" }
         ]
       },
       "Barangay 2": {
-        annualBudget: 200000,
-        supplementalBudget: 30000,
-        committed: 120000,
-        spent: 75000,
-        remaining: 35000,
+        annualBudget: 450000,
+        supplementalBudget: 60000,
+        committed: 320000,
+        spent: 158000,
+        remaining: 190000,
         pieData: [
-          { name: "Health", value: 11.2, color: "#EE82EE" },
-          { name: "Education", value: 17.2, color: "#5DADE2" },
-          { name: "Environment", value: 7.7, color: "#2ECC71" },
-          { name: "Global Mobility", value: 4.1, color: "#F39C12" },
-          { name: "Active Citizenship", value: 8.9, color: "#BB8FCE" },
-          { name: "Governance", value: 6.5, color: "#E74C3C" },
-          { name: "Social Equity & Inclusion", value: 5.7, color: "#3498DB" },
-          { name: "Peacebuilding & Security", value: 5.0, color: "#95A5A6" },
-          { name: "Economic Empowerment", value: 10.1, color: "#16A085" },
-          { name: "General Administrative Expense", value: 23.7, color: "#F1C40F" }
+          { name: "Adolescent and Youth Health", value: 19740, color: "#EE82EE" },
+          { name: "Quality Education", value: 31600, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 14220, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 7900, color: "#F39C12" },
+          { name: "Active Citizenship", value: 15800, color: "#BB8FCE" },
+          { name: "Good Governance", value: 11850, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 9480, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 7900, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 15800, color: "#16A085" },
+          { name: "General Administrative Expense", value: 23710, color: "#F1C40F" }
+        ]
+      },
+      "Barangay 3": {
+        annualBudget: 350000,
+        supplementalBudget: 40000,
+        committed: 250000,
+        spent: 127000,
+        remaining: 140000,
+        pieData: [
+          { name: "Adolescent and Youth Health", value: 15875, color: "#EE82EE" },
+          { name: "Quality Education", value: 25400, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 11430, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 6350, color: "#F39C12" },
+          { name: "Active Citizenship", value: 12700, color: "#BB8FCE" },
+          { name: "Good Governance", value: 9525, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 7620, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 6350, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 12700, color: "#16A085" },
+          { name: "General Administrative Expense", value: 19050, color: "#F1C40F" }
+        ]
+      }
+    },
+    "2025": {
+      "All": {
+        annualBudget: 1000000,
+        supplementalBudget: 120000,
+        committed: 720000,
+        spent: 350000,
+        remaining: 400000,
+        pieData: [
+          { name: "Adolescent and Youth Health", value: 43750, color: "#EE82EE" },
+          { name: "Quality Education", value: 70000, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 31500, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 17500, color: "#F39C12" },
+          { name: "Active Citizenship", value: 35000, color: "#BB8FCE" },
+          { name: "Good Governance", value: 26250, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 21000, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 17500, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 35000, color: "#16A085" },
+          { name: "General Administrative Expense", value: 52500, color: "#F1C40F" }
+        ]
+      },
+      "Barangay 1": {
+        annualBudget: 350000,
+        supplementalBudget: 40000,
+        committed: 250000,
+        spent: 120000,
+        remaining: 140000,
+        pieData: [
+          { name: "Adolescent and Youth Health", value: 15000, color: "#EE82EE" },
+          { name: "Quality Education", value: 24000, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 10800, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 6000, color: "#F39C12" },
+          { name: "Active Citizenship", value: 12000, color: "#BB8FCE" },
+          { name: "Good Governance", value: 9000, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 7200, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 6000, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 12000, color: "#16A085" },
+          { name: "General Administrative Expense", value: 18000, color: "#F1C40F" }
+        ]
+      },
+      "Barangay 2": {
+        annualBudget: 380000,
+        supplementalBudget: 48000,
+        committed: 280000,
+        spent: 138000,
+        remaining: 148000,
+        pieData: [
+          { name: "Adolescent and Youth Health", value: 17250, color: "#EE82EE" },
+          { name: "Quality Education", value: 27600, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 12420, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 6900, color: "#F39C12" },
+          { name: "Active Citizenship", value: 13800, color: "#BB8FCE" },
+          { name: "Good Governance", value: 10350, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 8280, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 6900, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 13800, color: "#16A085" },
+          { name: "General Administrative Expense", value: 20700, color: "#F1C40F" }
+        ]
+      },
+      "Barangay 3": {
+        annualBudget: 270000,
+        supplementalBudget: 32000,
+        committed: 190000,
+        spent: 92000,
+        remaining: 112000,
+        pieData: [
+          { name: "Adolescent and Youth Health", value: 11500, color: "#EE82EE" },
+          { name: "Quality Education", value: 18400, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 8280, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 4600, color: "#F39C12" },
+          { name: "Active Citizenship", value: 9200, color: "#BB8FCE" },
+          { name: "Good Governance", value: 6900, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 5520, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 4600, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 9200, color: "#16A085" },
+          { name: "General Administrative Expense", value: 13800, color: "#F1C40F" }
         ]
       }
     },
     "2024": {
       "All": {
         annualBudget: 750000,
-        supplementalBudget: 50000,
+        supplementalBudget: 100000,
         committed: 600000,
-        spent: 580000,
-        remaining: 220000,
+        spent: 480000,
+        remaining: 250000,
         pieData: [
-          { name: "Health", value: 11.2, color: "#EE82EE" },
-          { name: "Education", value: 17.2, color: "#5DADE2" },
-          { name: "Environment", value: 7.7, color: "#2ECC71" },
-          { name: "Global Mobility", value: 4.1, color: "#F39C12" },
-          { name: "Active Citizenship", value: 8.9, color: "#BB8FCE" },
-          { name: "Governance", value: 6.5, color: "#E74C3C" },
-          { name: "Social Equity & Inclusion", value: 5.7, color: "#3498DB" },
-          { name: "Peacebuilding & Security", value: 5.0, color: "#95A5A6" },
-          { name: "Economic Empowerment", value: 10.1, color: "#16A085" },
-          { name: "General Administrative Expense", value: 23.7, color: "#F1C40F" }
+          { name: "Adolescent and Youth Health", value: 60000, color: "#EE82EE" },
+          { name: "Quality Education", value: 96000, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 43200, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 24000, color: "#F39C12" },
+          { name: "Active Citizenship", value: 48000, color: "#BB8FCE" },
+          { name: "Good Governance", value: 36000, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 28800, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 24000, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 48000, color: "#16A085" },
+          { name: "General Administrative Expense", value: 72000, color: "#F1C40F" }
         ]
       },
       "Barangay 1": {
-        annualBudget: 120000,
-        supplementalBudget: 20000,
-        committed: 90000,
-        spent: 85000,
-        remaining: 55000,
+        annualBudget: 250000,
+        supplementalBudget: 35000,
+        committed: 200000,
+        spent: 165000,
+        remaining: 85000,
         pieData: [
-          { name: "Health", value: 11.2, color: "#EE82EE" },
-          { name: "Education", value: 17.2, color: "#5DADE2" },
-          { name: "Environment", value: 7.7, color: "#2ECC71" },
-          { name: "Global Mobility", value: 4.1, color: "#F39C12" },
-          { name: "Active Citizenship", value: 8.9, color: "#BB8FCE" },
-          { name: "Governance", value: 6.5, color: "#E74C3C" },
-          { name: "Social Equity & Inclusion", value: 5.7, color: "#3498DB" },
-          { name: "Peacebuilding & Security", value: 5.0, color: "#95A5A6" },
-          { name: "Economic Empowerment", value: 10.1, color: "#16A085" },
-          { name: "General Administrative Expense", value: 23.7, color: "#F1C40F" }
+          { name: "Adolescent and Youth Health", value: 20625, color: "#EE82EE" },
+          { name: "Quality Education", value: 33000, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 14850, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 8250, color: "#F39C12" },
+          { name: "Active Citizenship", value: 16500, color: "#BB8FCE" },
+          { name: "Good Governance", value: 12375, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 9900, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 8250, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 16500, color: "#16A085" },
+          { name: "General Administrative Expense", value: 24750, color: "#F1C40F" }
         ]
       },
       "Barangay 2": {
-        annualBudget: 180000,
-        supplementalBudget: 25000,
-        committed: 140000,
-        spent: 130000,
-        remaining: 75000,
+        annualBudget: 280000,
+        supplementalBudget: 38000,
+        committed: 225000,
+        spent: 185000,
+        remaining: 93000,
         pieData: [
-          { name: "Health", value: 11.2, color: "#EE82EE" },
-          { name: "Education", value: 17.2, color: "#5DADE2" },
-          { name: "Environment", value: 7.7, color: "#2ECC71" },
-          { name: "Global Mobility", value: 4.1, color: "#F39C12" },
-          { name: "Active Citizenship", value: 8.9, color: "#BB8FCE" },
-          { name: "Governance", value: 6.5, color: "#E74C3C" },
-          { name: "Social Equity & Inclusion", value: 5.7, color: "#3498DB" },
-          { name: "Peacebuilding & Security", value: 5.0, color: "#95A5A6" },
-          { name: "Economic Empowerment", value: 10.1, color: "#16A085" },
-          { name: "General Administrative Expense", value: 23.7, color: "#F1C40F" }
+          { name: "Adolescent and Youth Health", value: 23125, color: "#EE82EE" },
+          { name: "Quality Education", value: 37000, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 16650, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 9250, color: "#F39C12" },
+          { name: "Active Citizenship", value: 18500, color: "#BB8FCE" },
+          { name: "Good Governance", value: 13875, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 11100, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 9250, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 18500, color: "#16A085" },
+          { name: "General Administrative Expense", value: 27750, color: "#F1C40F" }
+        ]
+      },
+      "Barangay 3": {
+        annualBudget: 220000,
+        supplementalBudget: 27000,
+        committed: 175000,
+        spent: 130000,
+        remaining: 72000,
+        pieData: [
+          { name: "Adolescent and Youth Health", value: 16250, color: "#EE82EE" },
+          { name: "Quality Education", value: 26000, color: "#5DADE2" },
+          { name: "Agriculture and Environment", value: 11700, color: "#2ECC71" },
+          { name: "Diversity, Equity, and Inclusion", value: 6500, color: "#F39C12" },
+          { name: "Active Citizenship", value: 13000, color: "#BB8FCE" },
+          { name: "Good Governance", value: 9750, color: "#E74C3C" },
+          { name: "Arts and Culture", value: 7800, color: "#3498DB" },
+          { name: "Peace Building and Security", value: 6500, color: "#95A5A6" },
+          { name: "Economic Empowerment", value: 13000, color: "#16A085" },
+          { name: "General Administrative Expense", value: 19500, color: "#F1C40F" }
         ]
       }
     }
   };
 
-  const currentData = budgetDataByYearAndBarangay[selectedYear]?.[selectedBarangay] || budgetDataByYearAndBarangay["2025"]["All"];
+  const currentData = budgetDataByYearAndBarangay[selectedYear]?.[selectedBarangay] || budgetDataByYearAndBarangay["2026"]["All"];
 
   const formatCurrency = (amount: number) => {
     return `₱${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -190,9 +306,9 @@ export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
                   onChange={(e) => setSelectedYear(e.target.value)}
                   className="appearance-none bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg px-4 py-2 pr-10 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:border-[#174499] cursor-pointer min-w-[150px]"
                 >
+                  <option value="2026">2026</option>
                   <option value="2025">2025</option>
                   <option value="2024">2024</option>
-                  <option value="2023">2023</option>
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
@@ -285,7 +401,7 @@ export function SKMonitorContent({ darkMode }: SKMonitorContentProps) {
                     outerRadius={160}
                     paddingAngle={2}
                     dataKey="value"
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    label={({ percent }) => `${(percent * 100).toFixed(1)}%`}
                     labelLine={false}
                   >
                     {currentData.pieData.map((entry, index) => (

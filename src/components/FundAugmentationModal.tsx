@@ -8,6 +8,9 @@ interface FundAugmentationModalProps {
   onClose: () => void;
   lineItemName: string;
   onConfirm: (data: FundAugmentationData) => void;
+  totalAnnualBudget?: number;
+  totalSupplementalBudget?: number;
+  totalCommitted?: number;
 }
 
 export interface FundAugmentationData {
@@ -48,11 +51,19 @@ const mockRecordIds = [
   "RID-2023-002"
 ];
 
-export function FundAugmentationModal({ isOpen, onClose, lineItemName, onConfirm }: FundAugmentationModalProps) {
+export function FundAugmentationModal({ 
+  isOpen, 
+  onClose, 
+  lineItemName, 
+  onConfirm,
+  totalAnnualBudget = 0,
+  totalSupplementalBudget = 0,
+  totalCommitted = 0
+}: FundAugmentationModalProps) {
   const [augmentationMethod, setAugmentationMethod] = useState("Re-Allocation");
   const [reAllocateFrom, setReAllocateFrom] = useState("");
   const [recordId, setRecordId] = useState("");
-  const [amountToAllocate, setAmountToAllocate] = useState(0);
+  const [amountToAllocate, setAmountToAllocate] = useState();
   const [isMethodDropdownOpen, setIsMethodDropdownOpen] = useState(false);
   const [isLineItemDropdownOpen, setIsLineItemDropdownOpen] = useState(false);
   const [isRecordIdDropdownOpen, setIsRecordIdDropdownOpen] = useState(false);
@@ -72,9 +83,17 @@ export function FundAugmentationModal({ isOpen, onClose, lineItemName, onConfirm
   const lineItemDropdownRef = useRef<HTMLDivElement>(null);
   const recordIdDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Mock budget values for Supplemental Budget
-  const totalSupplementalBudget = 0;
-  const amountAvailableForAllocation = 0;
+  // Calculate budget values based on augmentation method
+  const selectedTotalBudget = augmentationMethod === "Re-Allocation" 
+    ? totalAnnualBudget 
+    : totalSupplementalBudget;
+  
+  const amountAvailableForAllocation = selectedTotalBudget - totalCommitted;
+
+  // Format currency helper
+  const formatCurrency = (value: number) => {
+    return `₱${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
 
   // Check if amount exceeds available allocation for Supplemental Budget
   const isAmountExceeded = augmentationMethod === "Supplemental Budget" && amountToAllocate > amountAvailableForAllocation;
@@ -146,7 +165,7 @@ export function FundAugmentationModal({ isOpen, onClose, lineItemName, onConfirm
     setAugmentationMethod("Re-Allocation");
     setReAllocateFrom("");
     setRecordId("");
-    setAmountToAllocate(0);
+    setAmountToAllocate();
     setLineItemSearchQuery("");
     setRecordIdSearchQuery("");
     setOrganizationName("");
@@ -338,11 +357,17 @@ export function FundAugmentationModal({ isOpen, onClose, lineItemName, onConfirm
                   <p className="font-['Inter:Medium',sans-serif] font-medium leading-[20px] text-[15px] text-black">
                     Total Supplemental Budget
                   </p>
-                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[34px] text-[29px] tracking-[-0.29px] text-black">₱{totalSupplementalBudget.toLocaleString()}.00</p>
+                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[34px] text-[29px] tracking-[-0.29px] text-black">
+                    {formatCurrency(totalSupplementalBudget)}
+                  </p>
                 </div>
                 <div className="content-stretch flex flex-col gap-[11px] items-start">
-                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[20px] text-[15px] text-black">Amount Available for Allocation</p>
-                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[34px] text-[29px] tracking-[-0.29px] text-black">₱{amountAvailableForAllocation.toLocaleString()}.00</p>
+                  <p className="font-['Inter:Medium',sans-serif] font-medium leading-[20px] text-[15px] text-black">
+                    Amount Available for Allocation
+                  </p>
+                  <p className="font-['Inter:Semi_Bold',sans-serif] font-semibold leading-[34px] text-[29px] tracking-[-0.29px] text-black">
+                    {formatCurrency(amountAvailableForAllocation)}
+                  </p>
                 </div>
               </div>
 

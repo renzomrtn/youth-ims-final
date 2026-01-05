@@ -66,7 +66,7 @@ export function NewLineItemModal({
   const [advocacyArea, setAdvocacyArea] = useState("");
   const [needsId, setNeedsId] = useState("");
   const [justification, setJustification] = useState("");
-  const [amountToAllocate, setAmountToAllocate] = useState(0);
+  const [amountToAllocate, setAmountToAllocate] = useState();
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
@@ -189,7 +189,7 @@ export function NewLineItemModal({
     setAdvocacyArea("");
     setNeedsId("");
     setJustification("");
-    setAmountToAllocate(0);
+    setAmountToAllocate();
     setFromDate("");
     setToDate("");
     setAdvocacySearchQuery("");
