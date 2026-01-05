@@ -1,4 +1,4 @@
-import { X, FileImage } from "lucide-react";
+import { X, FileImage, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { FlaggingData } from "./FlaggingModal";
 
@@ -28,6 +28,7 @@ export function FlaggedExpenseResponseModal({
   flaggingData,
 }: FlaggedExpenseResponseModalProps) {
   const [selectedExpenseIndex, setSelectedExpenseIndex] = useState(0);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [allCorrections, setAllCorrections] = useState<{
     [expenseId: string]: {
       particular?: string;
@@ -54,7 +55,11 @@ export function FlaggedExpenseResponseModal({
   };
 
   const handleConfirm = () => {
-    // Convert all corrections to the format expected
+    // Show the confirmation sub-modal instead of submitting immediately
+    setShowConfirmation(true);
+  };
+
+  const finalSubmit = () => {
     const corrections = flaggingData.selectedExpenses.map(expense => {
       const correctionData = allCorrections[expense.id] || { explanation: "" };
       return {
@@ -72,16 +77,17 @@ export function FlaggedExpenseResponseModal({
     };
     
     onConfirm(correctionData);
-    // Reset form
+    // Reset state
     setAllCorrections({});
     setSelectedExpenseIndex(0);
+    setShowConfirmation(false);
     onClose();
   };
 
   const handleCancel = () => {
-    // Reset form
     setAllCorrections({});
     setSelectedExpenseIndex(0);
+    setShowConfirmation(false);
     onClose();
   };
 
@@ -91,7 +97,121 @@ export function FlaggedExpenseResponseModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-3xl w-[788px] max-h-[90vh] overflow-y-auto shadow-xl">
+      <div className="bg-white rounded-3xl w-[788px] max-h-[90vh] overflow-y-auto shadow-xl relative">
+        
+        {showConfirmation && (
+  <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/30">
+    <div className="bg-white rounded-[24px] w-[788px] max-h-[90vh] overflow-auto shadow-2xl relative">
+      
+      {/* Header */}
+      <div className="bg-[#334870] h-[88px] rounded-t-[24px] relative">
+        <h2 className="absolute left-[40px] top-[27px] text-[24px] font-bold text-white">
+          Confirm Corrections
+        </h2>
+        <button
+          onClick={() => setShowConfirmation(false)}
+          className="absolute right-[32px] top-[32px] text-white hover:opacity-80"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="p-[40px] pb-[32px]">
+
+        {/* Info Banner */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex gap-3">
+          <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+          <p className="text-blue-800 text-sm">
+            Please review the corrections below before submitting. You may go back to edit if needed.
+          </p>
+        </div>
+
+        {/* Line Item */}
+        <section className="mb-6">
+          <h3 className="text-[20px] font-semibold mb-3">Line Item</h3>
+          <div className="bg-gray-50 rounded-lg p-4 text-sm">
+            {flaggingData.lineItem}
+          </div>
+        </section>
+
+        {/* Corrections Summary */}
+        <section className="mb-6">
+          <h3 className="text-[20px] font-semibold mb-4">
+            Corrections ({flaggingData.selectedExpenses.length})
+          </h3>
+
+          <div className="space-y-4">
+            {flaggingData.selectedExpenses.map((expense, index) => {
+              const correction = allCorrections[expense.id];
+
+              return (
+                <div
+                  key={expense.id}
+                  className="bg-gray-50 border border-gray-200 rounded-lg p-4"
+                >
+                  <h4 className="font-semibold text-[#174499] mb-3">
+                    Expense {index + 1}
+                  </h4>
+
+                  <div className="grid grid-cols-[160px_1fr] gap-y-2 text-sm">
+                    <span className="font-semibold text-gray-700">Original Particular:</span>
+                    <span>{expense.particular}</span>
+
+                    <span className="font-semibold text-gray-700">Original Amount:</span>
+                    <span>{formatCurrency(expense.amount)}</span>
+
+                    {correction?.particular && (
+                      <>
+                        <span className="font-semibold text-gray-700">Corrected Particular:</span>
+                        <span>{correction.particular}</span>
+                      </>
+                    )}
+
+                    {correction?.amount && (
+                      <>
+                        <span className="font-semibold text-gray-700">Corrected Amount:</span>
+                        <span>{formatCurrency(parseFloat(correction.amount))}</span>
+                      </>
+                    )}
+
+                    {correction?.dateOfExpense && (
+                      <>
+                        <span className="font-semibold text-gray-700">Corrected Date:</span>
+                        <span>{correction.dateOfExpense}</span>
+                      </>
+                    )}
+
+                    <span className="font-semibold text-gray-700">Explanation:</span>
+                    <span>{correction?.explanation || "—"}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-[20px] mt-8">
+          <button
+            onClick={() => setShowConfirmation(false)}
+            className="bg-[rgba(172,172,172,0.2)] border border-[#acacac] h-[45px] w-[110px] rounded-[6px] font-black text-[#606060] hover:bg-[rgba(172,172,172,0.3)]"
+          >
+            Previous
+          </button>
+          <button
+            onClick={finalSubmit}
+            className="bg-[#174499] h-[45px] w-[110px] rounded-[6px] font-black text-white hover:bg-[#0f2f6b]"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
         {/* Header */}
         <div className="bg-[#e06c6e] px-10 py-5 rounded-t-3xl relative">
           <h2 className="text-2xl text-white mb-1">Flagged Expense - Action Required</h2>
@@ -163,14 +283,13 @@ export function FlaggedExpenseResponseModal({
             <div className="bg-[#ffeded] border border-[#ff5858] rounded-md p-5">
               <p className="text-black mb-3">{flaggingData.remarks}</p>
               <p className="text-black text-sm">
-                <span className="font-semibold">Flagged by:</span> {/* Would come from user data */} John Doakes • December 13, 2025
+                <span className="font-semibold">Flagged by:</span> John Doakes • December 13, 2025
               </p>
             </div>
           </div>
 
-          {/* Correction Fields - Only show fields that need correction */}
+          {/* Correction Fields */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            {/* Original Amount - Always show if amount needs correction */}
             {fieldsToCorrect.amount && (
               <>
                 <div>
@@ -194,7 +313,6 @@ export function FlaggedExpenseResponseModal({
             )}
           </div>
 
-          {/* Corrected Particular */}
           {fieldsToCorrect.particular && (
             <div className="mb-6">
               <label className="block text-black mb-2">Corrected Particular:</label>
@@ -208,7 +326,6 @@ export function FlaggedExpenseResponseModal({
             </div>
           )}
 
-          {/* Corrected Date */}
           {fieldsToCorrect.dateOfExpense && (
             <div className="mb-6">
               <label className="block text-black mb-2">Corrected Date of Expense:</label>
@@ -221,19 +338,6 @@ export function FlaggedExpenseResponseModal({
             </div>
           )}
 
-          {/* Corrected Attachment */}
-          {fieldsToCorrect.attachment && (
-            <div className="mb-6">
-              <label className="block text-black mb-2">Upload Corrected Attachment:</label>
-              <input
-                type="file"
-                className="w-full border border-[#939393] rounded-md px-4 py-2 focus:outline-none focus:border-[#174499]"
-                accept="image/*,.pdf"
-              />
-            </div>
-          )}
-
-          {/* Explanation */}
           <div className="mb-6">
             <label className="block text-black mb-2">Explanation for Correction:</label>
             <textarea

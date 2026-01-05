@@ -54,6 +54,7 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
   const [selectedBarangay, setSelectedBarangay] = useState("Caliang");
   const [isExpenseVerificationModalOpen, setIsExpenseVerificationModalOpen] = useState(false);
   const [selectedExpenseItem, setSelectedExpenseItem] = useState<ExpenseItem | null>(null);
+  
 
   useEffect(() => {
     if (onSubPageChange) {
@@ -126,7 +127,8 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
     );
   };
 
-  const handleExpenseVerificationConfirm = (data: ExpenseVerificationData) => {
+  const handleExpenseVerificationConfirm = async (data: ExpenseVerificationData) => {
+  try {
     const totalAmount = data.particulars.reduce((sum, p) => sum + (p.amount || 0), 0);
     const newExpenseItem: any = {
       lineItem: data.lineItem, 
@@ -140,9 +142,17 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
       status: "Pending",
       particulars: data.particulars
     };
-    addExpenseItem(newExpenseItem);
+    
+    // This will call the API AND update the context state
+    await addExpenseItem(newExpenseItem);
+    
     setIsExpenseVerificationModalOpen(false);
-  };
+    alert('Expense verification submitted successfully!');
+  } catch (error) {
+    console.error('Failed to add expense:', error);
+    alert('Failed to save expense. Please try again.');
+  }
+};
 
   if (isLoading) return <div className="p-20 text-center dark:text-white">Loading expenses...</div>;
   if (error) return <div className="p-20 text-center text-red-500 font-bold">Error: {error}</div>;
@@ -183,38 +193,59 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
           </tr>
         </thead>
         <tbody>
-          {items.map((item) => (
-            <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-              <td className="px-6 py-4 text-black dark:text-white">{getLineItemName(item.lineItem)}</td>
-              <td className="px-6 py-4">
-                <div className="flex flex-col space-y-1">
-                  <div className="text-black dark:text-white">
-                    <span className="text-gray-600 dark:text-gray-400">ID:</span> {item.lineItem}
+          {items.map((item) => {
+            // Check if total amount exceeds budget
+            const isOverBudget = item.totalAmount > item.budget;
+
+            return (
+              <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <td className="px-6 py-4 text-black dark:text-white">{getLineItemName(item.lineItem)}</td>
+                <td className="px-6 py-4">
+                  <div className="flex flex-col space-y-1">
+                    <div className="text-black dark:text-white">
+                      <span className="text-gray-600 dark:text-gray-400">ID:</span> {item.lineItem}
+                    </div>
+                    <div className="text-black dark:text-white">
+                      <span className="text-gray-600 dark:text-gray-400">Area of Advocacy:</span> {item.areaOfParticipation || "N/A"}
+                    </div>
+                    <div className="text-black dark:text-white">
+                      <span className="text-gray-600 dark:text-gray-400">Budget:</span> {formatCurrency(item.budget)}
+                    </div>
                   </div>
-                  <div className="text-black dark:text-white">
-                    <span className="text-gray-600 dark:text-gray-400">Area of Advocacy:</span> {item.areaOfParticipation || "N/A"}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex flex-col">
+                    <span className={`
+                      ${isOverBudget 
+                        ? "text-red-600 dark:text-red-200 font-bold" 
+                        : "text-black dark:text-white"
+                      }
+                    `}>
+                      {formatCurrency(item.totalAmount)}
+                    </span>
+                    {isOverBudget && (
+                      <span className="text-[10px] uppercase text-red-500 mt-1">
+                        Exceeds Budget
+                      </span>
+                    )}
                   </div>
-                  <div className="text-black dark:text-white">
-                    <span className="text-gray-600 dark:text-gray-400">Budget:</span> {formatCurrency(item.budget)}
-                  </div>
-                </div>
-              </td>
-              <td className="px-6 py-4 text-black dark:text-white">{formatCurrency(item.totalAmount)}</td>
-              <td className="px-6 py-4">
-                {formatPeriod(item)}
-              </td>
-              <td className="px-6 py-4 text-black dark:text-white">{item.submittedBy}</td>
-              <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
-              <td className="px-6 py-4">
-                <button 
-                  onClick={() => setSelectedExpenseItem(item)}
-                  className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
-                >
-                  <Info className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                </button>
-              </td>
-            </tr>
-          ))}
+                </td>
+                <td className="px-6 py-4">
+                  {formatPeriod(item)}
+                </td>
+                <td className="px-6 py-4 text-black dark:text-white">{item.submittedBy}</td>
+                <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
+                <td className="px-6 py-4">
+                  <button 
+                    onClick={() => setSelectedExpenseItem(item)}
+                    className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                  >
+                    <Info className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -222,13 +253,34 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
 
   return (
     <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900">
-      {isExpenseVerificationModalOpen && (
-        <ExpenseVerificationModal
-          isOpen={isExpenseVerificationModalOpen}
-          onClose={() => setIsExpenseVerificationModalOpen(false)}
-          onConfirm={handleExpenseVerificationConfirm}
-        />
-      )}
+     {isExpenseVerificationModalOpen && (
+  <ExpenseVerificationModal
+    isOpen={isExpenseVerificationModalOpen}
+    onClose={() => setIsExpenseVerificationModalOpen(false)}
+    onConfirm={async (data: ExpenseVerificationData) => {
+      try {
+        const totalAmount = data.particulars.reduce((sum, p) => sum + (p.amount || 0), 0);
+        const newExpenseItem: any = {
+          lineItem: data.lineItem,
+          budget: data.budget,
+          totalAmount: totalAmount,
+          expenditurePeriod: {
+            from: data.expenditurePeriod.from,
+            to: data.expenditurePeriod.to
+          },
+          submittedBy: user?.name || "Unknown User",
+          status: "Pending",
+          particulars: data.particulars
+        };
+        await addExpenseItem(newExpenseItem);
+        setIsExpenseVerificationModalOpen(false);
+      } catch (error) {
+        console.error('Failed to add expense:', error);
+        alert('Failed to save expense. Please try again.');
+      }
+    }}
+  />
+)}
 
       {/* Navigation Tabs */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8">
