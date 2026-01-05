@@ -62,37 +62,55 @@ export function BudgetPreparationContent({ darkMode, viewMode }: BudgetPreparati
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to generate Needs ID
+  const generateNeedsId = () => {
+    const year = new Date().getFullYear();
+    const nextNumber = needsAssessments.length + 1;
+    return `NID-${year}-${String(nextNumber).padStart(3, '0')}`;
+  };
+
   // Fetch data on component mount
   useEffect(() => {
     fetchAllData();
   }, []);
 
   const fetchAllData = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+
+    // Fetch line items and funds (these endpoints exist)
+    const [lineItemsData, fundsData] = await Promise.all([
+      budgetAPI.getLineItems(),
+      budgetAPI.getFunds(),
+    ]);
+
+    // Try to fetch needs assessments, but don't fail if endpoint doesn't exist
+    let needsAssessmentsData = [];
     try {
-      setLoading(true);
-      setError(null);
-
-      const [lineItemsData, fundsData] = await Promise.all([
-        budgetAPI.getLineItems(),
-        budgetAPI.getFunds(),
-      ]);
-
-      // Debug: Check what data structure you're getting
-      console.log("Line Items Data:", lineItemsData);
-      console.log("First Line Item:", lineItemsData[0]); // <-- Add this
-      console.log("Funds Data:", fundsData);
-      console.log("First Fund:", fundsData[0]); // <-- Add this
-
-      setLineItems(lineItemsData || []);
-      setFunds(fundsData || []);
-      setNeedsAssessments([]);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch data");
-    } finally {
-      setLoading(false);
+      needsAssessmentsData = await budgetAPI.getNeedsAssessments();
+      console.log("Needs Assessments Data:", needsAssessmentsData);
+    } catch (needsError) {
+      console.log("Needs assessments endpoint not available yet, using local state");
+      // Keep the current needs assessments state if the endpoint doesn't exist
+      needsAssessmentsData = needsAssessments;
     }
-  };
+
+    console.log("Line Items Data:", lineItemsData);
+    console.log("First Line Item:", lineItemsData[0]);
+    console.log("Funds Data:", fundsData);
+    console.log("First Fund:", fundsData[0]);
+
+    setLineItems(lineItemsData || []);
+    setFunds(fundsData || []);
+    setNeedsAssessments(needsAssessmentsData || []);
+  } catch (err) {
+    console.error("Error fetching data:", err);
+    setError(err instanceof Error ? err.message : "Failed to fetch data");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Calculate budget totals from funds
 const totalAnnualBudget = funds
@@ -171,11 +189,56 @@ const totalAnnualBudget = funds
 
   const handleNewLineItemConfirm = async (data: NewLineItemData) => {
     try {
-      await budgetAPI.createLineItem(data);
+      // Generate line item ID
+      const year = new Date().getFullYear();
+      const existingLineItems = lineItems.filter(item => 
+        item.lineItemId && item.lineItemId.startsWith(`LI-${year}-`)
+      );
       
-      // Refresh data
+      let nextNumber = 1;
+      if (existingLineItems.length > 0) {
+        const numbers = existingLineItems.map(item => {
+          const match = item.lineItemId?.match(/LI-\d{4}-(\d{3})/);
+          return match ? parseInt(match[1], 10) : 0;
+        });
+        nextNumber = Math.max(...numbers, 0) + 1;
+      }
+      
+      const lineItemId = `LI-${year}-${String(nextNumber).padStart(3, '0')}`;
+      
+      // Prepare the data to send to backend
+      const lineItemData = {
+        lineItemId,
+        needsId: data.needsId || '', // For PPA
+        title: data.lineItemName,
+        description: data.justification || '', // For GAE
+        category: data.activityType === "Projects/Programs/Activities (PPA)" ? "PPA" : "GAE",
+        budget: data.amountToAllocate,
+        remaining: data.amountToAllocate, // Initially, remaining = budget
+        implementationDate: `${data.implementationPeriod.from} - ${data.implementationPeriod.to}`,
+        implementationPeriodFrom: data.implementationPeriod.from,
+        implementationPeriodTo: data.implementationPeriod.to,
+        status: "Pending", // Default status
+        sourceOfFund: data.sourceOfFund,
+        activityType: data.activityType,
+        advocacyArea: data.advocacyArea,
+      };
+
+      console.log("Creating line item with data:", lineItemData);
+
+      // Send to backend
+      await budgetAPI.createLineItem(lineItemData);
+      
+      console.log("Line item created successfully");
+      
+      // Refresh data to show the new line item
       await fetchAllData();
+      
+      // Close the modal
       setIsNewLineItemModalOpen(false);
+      
+      // Show success message
+      alert("Line item created successfully!");
     } catch (err) {
       console.error("Error creating line item:", err);
       alert("Failed to create line item. Please try again.");
@@ -203,21 +266,57 @@ const totalAnnualBudget = funds
   };
 
   const handleNewNeedsAssessmentConfirm = async (data: NeedsAssessmentData) => {
+  try {
+    // Generate IDs using the helper function
+    const tempId = `NA-${Date.now()}`;
+    const tempNeedsId = generateNeedsId(); // Using the helper function
+    
+    // Create new assessment object
+    const newAssessment: NeedsAssessment = {
+      id: tempId,
+      needsId: tempNeedsId,
+      evidence: data.recordId,
+      description: data.description,
+      areaOfParticipation: data.areaOfParticipation,
+      yearIdentified: new Date().getFullYear().toString(),
+      proposedSolution: data.proposedSolution,
+      status: "Pending",
+    };
+
+    // Try to save to backend, but fall back to local state if it fails
     try {
-      // You'll need to add this endpoint to your API
-      // await needsAssessmentAPI.create(data);
-      console.log("Adding new needs assessment:", data);
+      const savedAssessment = await budgetAPI.createNeedsAssessment({
+        areaOfParticipation: data.areaOfParticipation,
+        recordId: data.recordId,
+        description: data.description,
+        proposedSolution: data.proposedSolution,
+        status: "Pending",
+        yearIdentified: new Date().getFullYear().toString(),
+      });
       
-      // For now, just close the modal
-      setIsNewNeedsAssessmentModalOpen(false);
+      console.log("New needs assessment created in backend:", savedAssessment);
       
-      // Refresh data when API is available
-      // await fetchAllData();
-    } catch (err) {
-      console.error("Error creating needs assessment:", err);
-      alert("Failed to create needs assessment. Please try again.");
+      // Refresh data from backend
+      await fetchAllData();
+    } catch (apiError) {
+      console.log("Backend not available, saving locally:", apiError);
+      
+      // Add to local state
+      setNeedsAssessments(prev => [...prev, newAssessment]);
+      
+      console.log("New needs assessment created locally:", newAssessment);
     }
-  };
+    
+    // Close the modal
+    setIsNewNeedsAssessmentModalOpen(false);
+    
+    // Optional: Show success message
+    alert("Needs assessment created successfully!");
+  } catch (err) {
+    console.error("Error creating needs assessment:", err);
+    alert("Failed to create needs assessment. Please try again.");
+  }
+};
 
   const handleUpdateLineItem = async (item: LineItem) => {
     try {
@@ -279,10 +378,17 @@ const totalAnnualBudget = funds
       {/* Fund Augmentation Modal */}
       <FundAugmentationModal
         isOpen={isFundAugmentationModalOpen}
-        onClose={() => setIsFundAugmentationModalOpen(false)}
+        onClose={() => {
+          setIsFundAugmentationModalOpen(false);
+          setSelectedLineItem(null);
+        }}
         lineItemName={selectedLineItem?.title || ""}
         onConfirm={handleFundAugmentationConfirm}
+        totalAnnualBudget={totalAnnualBudget}
+        totalSupplementalBudget={totalSupplementalBudget}
+        totalCommitted={totalCommitted}
       />
+
 
       {/* New Needs Assessment Modal */}
       <NewNeedsAssessmentModal
@@ -440,7 +546,7 @@ const totalAnnualBudget = funds
                       <th className="px-6 py-6 text-center text-[#364153] dark:text-gray-200">Budget</th>
                       <th className="px-6 py-6 text-center text-[#364153] dark:text-gray-200">Implementation Date</th>
                       <th className="px-6 py-6 text-center text-[#364153] dark:text-gray-200">Status</th>
-                      <th className="px-6 py-6 text-right text-[#364153] dark:text-gray-200">Action</th>
+                      <th className="px-6 py-6 text-center text-[#364153] dark:text-gray-200">Action</th>
                     </tr>
                   </thead>
                   <tbody>

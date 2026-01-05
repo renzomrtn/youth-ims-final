@@ -178,6 +178,8 @@ export function DashboardContent({ darkMode, viewMode }: DashboardContentProps) 
                         outerRadius={120}
                         paddingAngle={0}
                         dataKey="value"
+                        label={({ value }) => `${value.toFixed(1)}%`}
+                        labelLine={false}
                       >
                         {budgetExpendituresData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} stroke="white" strokeWidth={2} />

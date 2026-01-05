@@ -1,10 +1,62 @@
-import { ArrowLeft, FileImage } from "lucide-react";
+import { ArrowLeft, FileImage, X } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useState } from "react";
 import { FlaggingModal, FlaggingData } from "./FlaggingModal";
 import { FlaggedExpenseResponseModal, CorrectionData } from "./FlaggedExpenseResponseModal";
 import { Particular, useExpenseVerification } from "../contexts/ExpenseVerificationContext";
 
+// --- NEW SUB-COMPONENT: Custom Confirmation Modal ---
+interface ApproveConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  lineItemTitle: string;
+}
+
+function ApproveConfirmationModal({ isOpen, onClose, onConfirm, lineItemTitle }: ApproveConfirmationModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30" role="dialog" aria-modal="true">
+      <div className="bg-white rounded-[24px] w-[500px] overflow-hidden relative shadow-2xl">
+        {/* Header - Matching requested design */}
+        <div className="bg-[#334870] h-[88px] flex items-center justify-between px-8">
+          <p className="font-['Source_Sans_3',sans-serif] font-bold text-[24px] text-white">
+            Confirm Approval
+          </p>
+          <button onClick={onClose} className="cursor-pointer text-white hover:opacity-80 transition-opacity">
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="p-[40px]">
+          <p className="font-['Source_Sans_3',sans-serif] text-[16px] text-[#515151] leading-relaxed mb-[30px]">
+            Are you sure you want to approve the expense verification for <span className="font-bold text-black">"{lineItemTitle}"</span>? 
+            This action will mark the item as verified and cannot be undone.
+          </p>
+          <br></br>
+
+          <div className="flex justify-end gap-[16px]">
+            <button 
+              onClick={onClose} 
+              className="bg-[rgba(224,108,110,0.2)] h-[45px] px-8 rounded-[6px] border border-[#e06c6e] font-['Source_Sans_3',sans-serif] font-black text-[#e06c6e] text-[14px] hover:bg-[rgba(224,108,110,0.3)] transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={onConfirm} 
+              className="bg-[#174499] h-[45px] px-8 rounded-[6px] font-['Source_Sans_3',sans-serif] font-black text-[14px] text-white hover:bg-[#0f2f6b] transition-colors"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- MAIN COMPONENT ---
 interface ExpenseItem {
   id: string;
   particular: string;
@@ -51,11 +103,14 @@ export function ExpenseVerificationDetailView({
   const [selectedExpenseIds, setSelectedExpenseIds] = useState<string[]>([]);
   const [isFlaggingModalOpen, setIsFlaggingModalOpen] = useState(false);
   const [isFlaggedExpenseResponseModalOpen, setIsFlaggedExpenseResponseModalOpen] = useState(false);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false); // Modal state
 
-  // FIXED: Generate unique IDs for particulars that don't have them
+  const isOverBudget = totalAmountSpent > budget;
+  const isFlagDisabled = selectedExpenseIds.length === 0;
+
   const expenseItems: ExpenseItem[] = particulars 
     ? particulars.map((p, index) => ({
-        id: p.id || `particular-${index}`, // Use existing ID or generate one based on index
+        id: p.id || `particular-${index}`, 
         particular: p.description,
         amount: p.amount,
         date: p.dateOfExpense,
@@ -72,14 +127,12 @@ export function ExpenseVerificationDetailView({
   };
 
   const handleFlagClick = () => {
-    if (selectedExpenseIds.length > 0) {
+    if (!isFlagDisabled) {
       setIsFlaggingModalOpen(true);
-    } else {
-      alert("Please select at least one expense item to flag.");
     }
   };
 
-  const handleApproveClick = async () => {
+  const handleApproveConfirm = async () => {
     await updateExpenseItem(expenseItemId, {
       status: "Verified",
       flaggingData: null
@@ -87,6 +140,7 @@ export function ExpenseVerificationDetailView({
     
     setSelectedExpenseIds([]);
     await refreshData();
+    setIsApproveModalOpen(false);
     onBack();
   };
 
@@ -128,7 +182,6 @@ export function ExpenseVerificationDetailView({
         return particular;
       });
 
-      // Recalculate the total amount spent based on updated particulars
       const newTotalAmountSpent = updatedParticulars.reduce((sum, p) => sum + p.amount, 0);
       
       await updateExpenseItem(expenseItemId, {
@@ -193,7 +246,6 @@ export function ExpenseVerificationDetailView({
 
           {/* Content */}
           <div className="p-8">
-            {/* Line Item Details */}
             <div className="mb-8">
               <h2 className="text-2xl text-black dark:text-white mb-6">
                 {lineItemTitle}
@@ -220,7 +272,16 @@ export function ExpenseVerificationDetailView({
                 <div className="space-y-3">
                   <div>
                     <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">Total Amount Spent</p>
-                    <p className="text-black dark:text-white text-xl font-semibold">{formatCurrency(totalAmountSpent)}</p>
+                    <div className="flex flex-col">
+                        <p className={`text-xl font-semibold ${isOverBudget ? "text-red-600 dark:text-red-400 font-bold" : "text-black dark:text-white"}`}>
+                            {formatCurrency(totalAmountSpent)}
+                        </p>
+                        {isOverBudget && (
+                            <span className="text-[11px] font-bold text-red-600 dark:text-red-500 uppercase tracking-wider">
+                                Exceeds Budget
+                            </span>
+                        )}
+                    </div>
                   </div>
                   
                   <div>
@@ -264,7 +325,7 @@ export function ExpenseVerificationDetailView({
                             <td className="px-6 py-4">
                               <input
                                 type="checkbox"
-                                className="w-4 h-4 border-2 border-gray-400 rounded"
+                                className="w-4 h-4 border-2 border-gray-400 rounded cursor-pointer"
                                 checked={selectedExpenseIds.includes(item.id)}
                                 onChange={() => handleCheckboxChange(item.id)}
                               />
@@ -302,15 +363,24 @@ export function ExpenseVerificationDetailView({
                   <span className="text-xl text-black dark:text-white font-semibold">{formatCurrency(budget)}</span>
                 </div>
                 <div className="flex justify-between items-center pb-4 border-b-2 border-gray-300 dark:border-gray-600">
-                  <span className="text-gray-600 dark:text-gray-400">Total Amount Spent:</span>
-                  <span className="text-xl text-black dark:text-white font-semibold">{formatCurrency(totalAmountSpent)}</span>
+                  <div className="flex flex-col">
+                    <span className="text-gray-600 dark:text-gray-400">Total Amount Spent:</span>
+                    {isOverBudget && (
+                        <span className="text-[10px] font-bold text-red-600 dark:text-red-500 uppercase tracking-wider">
+                            Exceeds Budget
+                        </span>
+                    )}
+                  </div>
+                  <span className={`text-xl font-semibold ${isOverBudget ? "text-red-600 dark:text-red-400 font-bold" : "text-black dark:text-white"}`}>
+                    {formatCurrency(totalAmountSpent)}
+                  </span>
                 </div>
 
                 {/* Action Buttons for Treasurer */}
                 {user?.role === "SKF Treasurer" && status === "Flagged" && (
                   <div className="pt-4">
                     <button
-                      className="w-full px-8 py-2.5 bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-lg transition-colors"
+                      className="w-full h-[45px] bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-[6px] transition-colors font-bold text-[14px]"
                       onClick={() => setIsFlaggedExpenseResponseModalOpen(true)}
                     >
                       Respond to Flag
@@ -319,29 +389,47 @@ export function ExpenseVerificationDetailView({
                 )}
 
                 {/* Action Buttons for Auditor and President */}
-                {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
-                  <div className="flex gap-3 pt-4">
-                    <button
-                      className="flex-1 px-6 py-2.5 bg-[#ef4444] hover:bg-[#dc2626] text-white rounded-lg transition-colors"
-                      onClick={handleFlagClick}
-                    >
-                      Flag
-                    </button>
-                    <button
-                      className="flex-1 px-6 py-2.5 bg-[#174499] hover:bg-[#0f2f6b] text-white rounded-lg transition-colors"
-                      onClick={handleApproveClick}
-                    >
-                      Approve
-                    </button>
-                  </div>
-                )}
+                  {(user?.role === "SKF Auditor" || user?.role === "SKF President") && status !== "Verified" && (
+                    <div className="flex gap-3 pt-4">
+                      <button
+                        disabled={isFlagDisabled}
+                        className={`flex-1 h-[45px] text-white rounded-[6px] transition-all font-bold text-[14px] ${
+                          isFlagDisabled 
+                            ? "bg-gray-400 cursor-not-allowed opacity-50" 
+                            : "bg-[#ef4444] hover:bg-[#dc2626]"
+                        }`}
+                        onClick={handleFlagClick}
+                      >
+                        Flag
+                      </button>
+                      
+                      <button
+                        // If items ARE selected (isFlagDisabled is false), then this button is disabled
+                        disabled={!isFlagDisabled} 
+                        className={`flex-1 h-[45px] text-white rounded-[6px] transition-all font-bold text-[14px] ${
+                          !isFlagDisabled
+                            ? "bg-gray-400 cursor-not-allowed opacity-50"
+                            : "bg-[#174499] hover:bg-[#0f2f6b]"
+                        }`}
+                        onClick={() => setIsApproveModalOpen(true)}
+                      >
+                        Approve
+                      </button>
+                    </div>
+                  )}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Flagging Modal */}
+      <ApproveConfirmationModal
+        isOpen={isApproveModalOpen}
+        onClose={() => setIsApproveModalOpen(false)}
+        onConfirm={handleApproveConfirm}
+        lineItemTitle={lineItemTitle}
+      />
+
       <FlaggingModal
         isOpen={isFlaggingModalOpen}
         onClose={() => setIsFlaggingModalOpen(false)}
@@ -350,7 +438,6 @@ export function ExpenseVerificationDetailView({
         selectedExpenses={getSelectedExpenses()}
       />
 
-      {/* Flagged Expense Response Modal */}
       <FlaggedExpenseResponseModal
         isOpen={isFlaggedExpenseResponseModalOpen}
         onClose={() => setIsFlaggedExpenseResponseModalOpen(false)}
