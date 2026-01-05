@@ -314,7 +314,7 @@ export function ExpenseVerificationModal({ isOpen, onClose, onConfirm }: Expense
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" role="dialog" aria-modal="true">
       {!showConfirmation ? (
-        /* --- ORIGINAL MODAL UI (UNTOUCHED) --- */
+        /* --- ORIGINAL MODAL UI --- */
         <div className="bg-white rounded-[24px] w-[788px] max-h-[90vh] overflow-y-auto relative shadow-2xl">
           <div className="sticky top-0 bg-[#334870] h-[88px] rounded-t-[24px] z-10">
             <p className="absolute font-['Source_Sans_3',sans-serif] font-bold leading-[normal] left-[40px] text-[24px] text-nowrap text-white top-[27px]">
@@ -377,10 +377,10 @@ export function ExpenseVerificationModal({ isOpen, onClose, onConfirm }: Expense
             <div className="bg-[#cacaca] h-[2px] mb-[17px]" />
 
             {particulars.map((particular, index) => (
-              <div key={particular.id} className="mb-[15px] relative border-b border-gray-100 pb-4">
+              <div key={particular.id} className="mb-[15px] relative border border-gray-200 rounded-lg p-4 pb-4 bg-gray-50">
                 {particulars.length > 1 && (
-                  <button onClick={() => removeParticular(index)} className="absolute -right-2 -top-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors z-20" disabled={isSaving}>
-                    <X size={14} />
+                  <button onClick={() => removeParticular(index)} className="absolute -right-2 -top-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors z-20 shadow-md" disabled={isSaving} title="Remove this particular">
+                    <X size={16} />
                   </button>
                 )}
 
@@ -424,13 +424,23 @@ export function ExpenseVerificationModal({ isOpen, onClose, onConfirm }: Expense
                   <input type="date" value={particular.dateOfExpense} onChange={(e) => handleParticularChange(index, 'dateOfExpense', e.target.value)} className="w-[340px] h-[38px] border border-[#939393] rounded-[5px] px-[16px] text-[#515151] outline-none" disabled={isSaving} />
                 </div>
 
-                <label className={`block w-full h-[38px] rounded-[5px] border border-[#939393] bg-[#dedede] flex items-center justify-center gap-[8px] ${isSaving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-[#d0d0d0]'} transition-colors mb-[15px]`}>
-                  <Upload className="w-[16px] h-[16px] text-[#515151]" />
-                  <span className="text-[16px] text-[#515151] font-bold truncate max-w-[90%]">
-                    {particular.receipt ? particular.receipt.name : "Upload the Original Receipt"}
-                  </span>
-                  <input type="file" onChange={(e) => handleFileUpload(index, e.target.files?.[0])} className="hidden" disabled={isSaving} />
+                <label htmlFor={`file-upload-${particular.id}`} className="relative mb-[15px] block cursor-pointer">
+                  <input 
+                    type="file" 
+                    id={`file-upload-${particular.id}`}
+                    onChange={(e) => handleFileUpload(index, e.target.files?.[0])} 
+                    className="sr-only" 
+                    disabled={isSaving}
+                    accept="image/*,.pdf"
+                  />
+                  <div className={`w-full h-[38px] rounded-[5px] border border-[#939393] bg-[#dedede] flex items-center justify-center gap-[8px] ${isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#d0d0d0]'} transition-colors`}>
+                    <Upload className="w-[16px] h-[16px] text-[#515151]" />
+                    <span className="text-[16px] text-[#515151] font-bold truncate max-w-[90%]">
+                      {particular.receipt ? particular.receipt.name : "Upload the Original Receipt"}
+                    </span>
+                  </div>
                 </label>
+                <div className="mb-[15px]"></div>
               </div>
             ))}
 
