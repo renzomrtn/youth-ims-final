@@ -192,7 +192,7 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
             <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Expenditure Period</th>
             <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Submitted By</th>
             <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Status</th>
-            <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Action</th>
+            <th className="px-6 py-3 text-left text-gray-600 dark:text-gray-300">Detailed Info</th>
           </tr>
         </thead>
         <tbody>
