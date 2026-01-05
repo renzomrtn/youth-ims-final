@@ -18,28 +18,28 @@ const federationStats = [
     value: "24",
     change: "+12%",
     isPositive: true,
-    icon: <TrendingUp className="w-6 h-6 text-[#155DFC]" />
+    icon: <TrendingUp className="w-6 h-6 text-blue-700 dark:text-blue-400" />
   },
   {
     title: "Budget Utilization",
     value: "68%",
     change: "-3%",
     isPositive: false,
-    icon: <DollarSign className="w-6 h-6 text-[#155DFC]" />
+    icon: <DollarSign className="w-6 h-6 text-blue-700 dark:text-blue-400" />
   },
   {
     title: "Budget Utilization",
     value: "68%",
     change: "-3%",
     isPositive: false,
-    icon: <DollarSign className="w-6 h-6 text-[#155DFC]" />
+    icon: <DollarSign className="w-6 h-6 text-blue-700 dark:text-blue-400" />
   },
   {
     title: "Documents",
     value: "1,247",
     change: "+24%",
     isPositive: true,
-    icon: <FileText className="w-6 h-6 text-[#155DFC]" />
+    icon: <FileText className="w-6 h-6 text-blue-700 dark:text-blue-400" />
   }
 ];
 
@@ -49,28 +49,28 @@ const barangayStats = [
     value: "8",
     change: "+5%",
     isPositive: true,
-    icon: <TrendingUp className="w-6 h-6 text-[#155DFC]" />
+    icon: <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
   },
   {
     title: "Budget Utilization",
     value: "52%",
     change: "+8%",
     isPositive: true,
-    icon: <DollarSign className="w-6 h-6 text-[#155DFC]" />
+    icon: <DollarSign className="w-6 h-6 text-blue-600 dark:text-blue-400" />
   },
   {
     title: "Budget Utilization",
     value: "52%",
     change: "+8%",
     isPositive: true,
-    icon: <DollarSign className="w-6 h-6 text-[#155DFC]" />
+    icon: <DollarSign className="w-6 h-6 text-blue-600 dark:text-blue-400" />
   },
   {
     title: "Documents",
     value: "342",
     change: "+18%",
     isPositive: true,
-    icon: <FileText className="w-6 h-6 text-[#155DFC]" />
+    icon: <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
   }
 ];
 
@@ -160,7 +160,7 @@ export function DashboardContent({ darkMode, viewMode }: DashboardContentProps) 
           <div className="flex-1 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-[492px] flex flex-col">
             {/* Header */}
             <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-6 shrink-0">
-              <h2 className="text-[#101828] dark:text-white text-xl">Budget Expenditures Overview</h2>
+              <h2 className="text-gray-900 dark:text-white text-xl font-semibold">Budget Expenditures Overview</h2>
             </div>
 
             {/* Pie Chart Content */}
@@ -197,7 +197,7 @@ export function DashboardContent({ darkMode, viewMode }: DashboardContentProps) 
                         className="w-3 h-3 rounded-sm shrink-0"
                         style={{ backgroundColor: item.color }}
                       />
-                      <span className="text-sm text-[#333] dark:text-gray-300">
+                      <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">
                         {item.name}: {item.value}%
                       </span>
                     </div>
