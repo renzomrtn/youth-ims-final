@@ -14,12 +14,6 @@ const LINE_ITEM_LOOKUP: Record<string, string> = {
   "LI-2025/906-P48T": "Youth Sports Festival"
 };
 
-interface ExpenseVerificationContentProps {
-  darkMode: boolean;
-  viewMode: "federation" | "barangay";
-  onSubPageChange?: (subPage: string | undefined) => void;
-}
-
 interface ExpenseItem {
   id: string;
   lineItemId?: string; 
@@ -32,7 +26,7 @@ interface ExpenseItem {
     to: string;
   };
   submittedBy: string;
-  status: "Verified" | "Unverified" | "Pending" | "Flagged";
+  status: "Verified" | "Unverified" | "Flagged"; // Removed Pending
   particulars?: {
     id: string;
     description: string;
@@ -54,7 +48,6 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
   const [selectedBarangay, setSelectedBarangay] = useState("Caliang");
   const [isExpenseVerificationModalOpen, setIsExpenseVerificationModalOpen] = useState(false);
   const [selectedExpenseItem, setSelectedExpenseItem] = useState<ExpenseItem | null>(null);
-  
 
   useEffect(() => {
     if (onSubPageChange) {
@@ -99,8 +92,21 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
     });
   };
 
-  const currentItems = filterItems(expenseItems.filter(item => item.status !== "Verified"));
-  const pastItems = filterItems(expenseItems.filter(item => item.status === "Verified"));
+  // Get current year to determine what is "year old data"
+  const currentYear = new Date().getFullYear();
+
+  // 1. Current Verifications: Everything from the current year (regardless of status)
+  const currentItems = filterItems(expenseItems.filter(item => {
+    const itemYear = new Date(item.expenditurePeriod.to).getFullYear();
+    return itemYear === currentYear;
+  }));
+
+  // 2. Past Verifications: Data from previous years (year-old data)
+  const pastItems = filterItems(expenseItems.filter(item => {
+  const itemYear = new Date(item.expenditurePeriod.to).getFullYear();
+  return itemYear < currentYear && item.status === "Verified";
+}));
+  // 3. Monitoring: All items
   const monitoringItems = filterItems(expenseItems);
 
   const formatCurrency = (amount: number | undefined | null) => {
@@ -115,10 +121,9 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
     const statusStyles = {
       Verified: { bg: "bg-[#d1fae5]", border: "border-[#6ee7b7]", text: "text-[#047857]", dot: "bg-[#10b981]" },
       Unverified: { bg: "bg-[#fffbeb]", border: "border-[#fe9a00]", text: "text-[#e17100]", dot: "bg-[#fe9a00]" },
-      Pending: { bg: "bg-gray-100", border: "border-gray-300", text: "text-gray-600", dot: "bg-gray-400" },
       Flagged: { bg: "bg-[#fff7f7]", border: "border-[#fe0000]", text: "text-[#e10000]", dot: "bg-[#fe0000]" }
     };
-    const style = statusStyles[status as keyof typeof statusStyles] || statusStyles.Pending;
+    const style = statusStyles[status as keyof typeof statusStyles] || statusStyles.Unverified;
     return (
       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs border ${style.bg} ${style.border} ${style.text}`}>
         <span className={`w-2 h-2 rounded-full ${style.dot} mr-2`} />
@@ -139,13 +144,11 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
         to: data.expenditurePeriod.to
       },
       submittedBy: user?.name || "Unknown User",
-      status: "Pending",
+      status: "Unverified", // Changed from Pending
       particulars: data.particulars
     };
     
-    // This will call the API AND update the context state
     await addExpenseItem(newExpenseItem);
-    
     setIsExpenseVerificationModalOpen(false);
     alert('Expense verification submitted successfully!');
   } catch (error) {
@@ -194,9 +197,7 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
         </thead>
         <tbody>
           {items.map((item) => {
-            // Check if total amount exceeds budget
             const isOverBudget = item.totalAmount > item.budget;
-
             return (
               <tr key={item.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                 <td className="px-6 py-4 text-black dark:text-white">{getLineItemName(item.lineItem)}</td>
@@ -215,24 +216,15 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-col">
-                    <span className={`
-                      ${isOverBudget 
-                        ? "text-red-600 dark:text-red-200 font-bold" 
-                        : "text-black dark:text-white"
-                      }
-                    `}>
+                    <span className={`${isOverBudget ? "text-red-600 dark:text-red-200 font-bold" : "text-black dark:text-white"}`}>
                       {formatCurrency(item.totalAmount)}
                     </span>
                     {isOverBudget && (
-                      <span className="text-[10px] uppercase text-red-500 mt-1">
-                        Exceeds Budget
-                      </span>
+                      <span className="text-[10px] uppercase text-red-500 mt-1">Exceeds Budget</span>
                     )}
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  {formatPeriod(item)}
-                </td>
+                <td className="px-6 py-4">{formatPeriod(item)}</td>
                 <td className="px-6 py-4 text-black dark:text-white">{item.submittedBy}</td>
                 <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
                 <td className="px-6 py-4">
@@ -240,6 +232,7 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
                     onClick={() => setSelectedExpenseItem(item)}
                     className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
                   >
+                    <span className="sr-only">View Details</span>
                     <Info className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                   </button>
                 </td>
@@ -254,33 +247,33 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
   return (
     <div className="flex flex-col h-full bg-[#f3f3f3] dark:bg-gray-900">
      {isExpenseVerificationModalOpen && (
-  <ExpenseVerificationModal
-    isOpen={isExpenseVerificationModalOpen}
-    onClose={() => setIsExpenseVerificationModalOpen(false)}
-    onConfirm={async (data: ExpenseVerificationData) => {
-      try {
-        const totalAmount = data.particulars.reduce((sum, p) => sum + (p.amount || 0), 0);
-        const newExpenseItem: any = {
-          lineItem: data.lineItem,
-          budget: data.budget,
-          totalAmount: totalAmount,
-          expenditurePeriod: {
-            from: data.expenditurePeriod.from,
-            to: data.expenditurePeriod.to
-          },
-          submittedBy: user?.name || "Unknown User",
-          status: "Pending",
-          particulars: data.particulars
-        };
-        await addExpenseItem(newExpenseItem);
-        setIsExpenseVerificationModalOpen(false);
-      } catch (error) {
-        console.error('Failed to add expense:', error);
-        alert('Failed to save expense. Please try again.');
-      }
-    }}
-  />
-)}
+      <ExpenseVerificationModal
+        isOpen={isExpenseVerificationModalOpen}
+        onClose={() => setIsExpenseVerificationModalOpen(false)}
+        onConfirm={async (data: ExpenseVerificationData) => {
+          try {
+            const totalAmount = data.particulars.reduce((sum, p) => sum + (p.amount || 0), 0);
+            const newExpenseItem: any = {
+              lineItem: data.lineItem,
+              budget: data.budget,
+              totalAmount: totalAmount,
+              expenditurePeriod: {
+                from: data.expenditurePeriod.from,
+                to: data.expenditurePeriod.to
+              },
+              submittedBy: user?.name || "Unknown User",
+              status: "Unverified", // Changed from Pending
+              particulars: data.particulars
+            };
+            await addExpenseItem(newExpenseItem);
+            setIsExpenseVerificationModalOpen(false);
+          } catch (error) {
+            console.error('Failed to add expense:', error);
+            alert('Failed to save expense. Please try again.');
+          }
+        }}
+      />
+    )}
 
       {/* Navigation Tabs */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8">
@@ -312,17 +305,20 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
         <div className="bg-white dark:bg-gray-800 rounded-lg">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-black dark:text-white">
+            <h2 className="text-black dark:text-white font-medium">
               {activeTab === "current" ? "Expense Verification" : activeTab === "past" ? "Past Expense Verifications" : "Expense Verification per Barangay"}
             </h2>
             <div className="flex items-center gap-4">
-              <input
-                type="text"
-                placeholder="Search expenses..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400"
-              />
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search expenses..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
               {activeTab === "current" && user?.role === "SKF Treasurer" && (
                 <button 
                   onClick={() => setIsExpenseVerificationModalOpen(true)}
@@ -344,7 +340,7 @@ export function ExpenseVerificationContent({ darkMode, viewMode, onSubPageChange
           <div className="flex items-center justify-center gap-2 p-6 border-t border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded disabled:opacity-50"
               disabled={currentPage === 1}
             >
               Previous
