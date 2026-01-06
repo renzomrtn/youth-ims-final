@@ -438,7 +438,7 @@ const totalAnnualBudget = funds
                 }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-[#155dfc]">Total Annual Budget For 2026</p>
+                  <p className="text-[20px] text-[#155dfc]">Total Annual Budget For 2026</p>
                   <button 
                     onClick={() => {
                       setBudgetType("annual");
@@ -453,7 +453,7 @@ const totalAnnualBudget = funds
                   </button>
                 </div>
                 <p className="text-[30px] text-[#101828] mb-2">{formatCurrency(totalAnnualBudget)}</p>
-                <p className="text-xs text-[#155dfc]">Base allocation for this year</p>
+                <p className="text-[s] text-[#155dfc]">Base allocation for this year</p>
               </div>
 
               {/* Total Supplemental Budget */}
@@ -465,7 +465,7 @@ const totalAnnualBudget = funds
                 }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-[#9810fa]">Total Supplemental Budget</p>
+                  <p className="text-[20px] text-[#9810fa]">Total Supplemental Budget</p>
                   <button 
                     onClick={() => {
                       setBudgetType("supplemental");
@@ -480,30 +480,30 @@ const totalAnnualBudget = funds
                   </button>
                 </div>
                 <p className="text-[30px] text-[#101828] mb-2">{formatCurrency(totalSupplementalBudget)}</p>
-                <p className="text-xs text-[#9810fa]">Certified available funds for release</p>
+                <p className="text-s text-[#9810fa]">Certified available funds for release</p>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-7">
               {/* Total Committed */}
               <div className="bg-white dark:bg-gray-700 p-6 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
-                <p className="text-[#155dfc] dark:text-blue-400 mb-3">Total Priority</p>
+                <p className="text-[20px] text-[#155dfc] dark:text-blue-400 mb-3">Total Priority</p>
                 <p className="text-[30px] text-[#101828] dark:text-white mb-2">{formatCurrency(totalCommitted)}</p>
-                <p className="text-xs text-[#155dfc] dark:text-blue-400">Promised amounts per Line Items</p>
+                <p className="text-s text-[#155dfc] dark:text-blue-400">Promised amounts per Line Items</p>
               </div>
 
               {/* Total Spent */}
               <div className="bg-white dark:bg-gray-700 p-6 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
-                <p className="text-[#155dfc] dark:text-blue-400 mb-3">Total Spent</p>
+                <p className="text-[20px] text-[#155dfc] dark:text-blue-400 mb-3">Total Spent</p>
                 <p className="text-[30px] text-[#101828] dark:text-white mb-2">{formatCurrency(totalSpent)}</p>
-                <p className="text-xs text-[#155dfc] dark:text-blue-400">Total amount spent across all categories PS, MOOE, and CO</p>
+                <p className="text-s text-[#155dfc] dark:text-blue-400">Total amount spent across all categories PS, MOOE, and CO</p>
               </div>
 
               {/* Total Remaining */}
               <div className="bg-white dark:bg-gray-700 p-6 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
-                <p className="text-[#F53B57] dark:text-red-400 mb-3">Total Remaining</p>
+                <p className="text-[20px] text-[#F53B57] dark:text-red-400 mb-3">Total Remaining</p>
                 <p className="text-[30px] text-[#101828] dark:text-white mb-2">{formatCurrency(totalRemaining)}</p>
-                <p className="text-xs text-[#F53B57] dark:text-red-400">Remaining funds</p>
+                <p className="text-s text-[#F53B57] dark:text-red-400">Remaining funds</p>
               </div>
             </div>
           </div>
