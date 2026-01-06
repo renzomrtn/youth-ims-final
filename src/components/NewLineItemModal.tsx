@@ -475,7 +475,7 @@ export function NewLineItemModal({
             </div>
             {isAmountExceeded && (
               <p className="mt-2 text-sm text-red-500 font-['Source_Sans_3:Regular',sans-serif]">
-                Amount exceeds the Amount Available for Allocation
+                Please enter an amount less than or equal to the available balance.
               </p>
             )}
           </div>
